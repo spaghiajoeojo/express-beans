@@ -1,6 +1,6 @@
 import { flushPromises } from '@test/utils/testUtils';
 import express from 'express';
-import { RouterBean } from '@/main';
+import { RouterBean } from '@/decorators/RouterBean';
 import { registeredBeans } from '@/decorators';
 
 vi.mock('express');

@@ -1,10 +1,11 @@
 import { flushPromises } from '@test/utils/testUtils';
 import { Request, Response } from 'express';
-import { Route } from '@/main';
-import { registeredBeans } from '@/decorators';
+import { Route } from '@/decorators/Route';
+import { registeredBeans, registeredMethods } from '@/decorators';
 
 vi.mock('@/decorators', () => ({
   registeredBeans: new Map(),
+  registeredMethods: new Map(),
   logger: {
     info: vi.fn(),
     debug: vi.fn(),
@@ -12,9 +13,10 @@ vi.mock('@/decorators', () => ({
   },
 }));
 
-describe('Bean.ts', () => {
+describe('Route.ts', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    registeredMethods.clear();
     registeredBeans.clear();
   });
 
@@ -38,6 +40,7 @@ describe('Bean.ts', () => {
       }
     }
     const bean: any = new Class();
+    registeredMethods.set(bean.getNum, bean);
     bean.routerConfig = {
       path: '/router',
       router: {

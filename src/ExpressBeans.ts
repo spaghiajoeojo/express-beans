@@ -6,9 +6,18 @@ export default class ExpressBeans {
   private readonly app: Express;
 
   /**
+   * Creates a new ExpressBeans application
+   * @param options {ExpressBeansOptions}
+   */
+  static createApp(options?: Partial<ExpressBeansOptions>) {
+    return new ExpressBeans(options);
+  }
+
+  /**
    * Constructor of ExpressBeans application
    * @constructor
    * @param options {ExpressBeansOptions}
+   * @param onInitialized {Function}
    */
   constructor(options?: Partial<ExpressBeansOptions>) {
     this.app = express();
@@ -22,36 +31,50 @@ export default class ExpressBeans {
    * @param listen {boolean}
    * @param port {number}
    * @param beans {Object[]}
+   * @param onInitialized {Function}
    * @private
    */
   private initialize({
     listen = true,
     port = 8080,
-    beans = [],
+    routerBeans = [],
+    onInitialized,
+    onError,
   }: Partial<ExpressBeansOptions>) {
-    const invalidBeans = beans
+    const invalidBeans = routerBeans
       .filter(((bean) => !bean.isExpressBean))
       .map((object) => object.prototype.constructor.name);
     if (invalidBeans.length > 0) {
       throw new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`);
     }
     setImmediate(() => {
-      Array.from(registeredBeans.values())
-        .filter((bean) => bean.routerConfig)
-        .forEach((bean) => {
-          try {
-            const { path, router } = bean.routerConfig!;
-            logger.debug(`Registering router ${bean.className}`);
-            this.app.use(path, router);
-          } catch (e) {
-            logger.error(e);
-            throw new Error(`Router ${bean.className} not intialized correctly`);
-          }
-        });
-      if (listen) {
-        this.app.listen(port, () => {
-          logger.info(`Server listening on port ${port}`);
-        });
+      try {
+        Array.from(registeredBeans.values())
+          .filter((bean) => bean.routerConfig)
+          .forEach((bean) => {
+            try {
+              const { path, router } = bean.routerConfig!;
+              logger.debug(`Registering router ${bean.className}`);
+              this.app.use(path, router);
+            } catch (e) {
+              logger.error(e);
+              throw new Error(`Router ${bean.className} not initialized correctly`);
+            }
+          });
+        if (listen) {
+          this.app.listen(port, () => {
+            logger.info(`Server listening on port ${port}`);
+            if (onInitialized) {
+              onInitialized();
+            }
+          });
+        }
+      } catch (err: any) {
+        if (onError) {
+          onError(err);
+        } else {
+          throw err;
+        }
       }
     });
   }

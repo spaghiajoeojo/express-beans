@@ -10,7 +10,9 @@ export interface ExpressBean {
 export interface ExpressBeansOptions {
   listen: boolean,
   port: number,
-  beans: any[],
+  routerBeans: Array<any>,
+  onInitialized?: () => void,
+  onError?: (err: Error) => void,
 }
 
 export declare type HTTPMethod =

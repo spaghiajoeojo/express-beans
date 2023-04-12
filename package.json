@@ -1,9 +1,12 @@
 {
   "name": "express-beans",
-  "private": true,
   "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spaghiajoeojo/express-beans.git"
+  },
   "scripts": {
-    "dev": "nodemon -r tsconfig-paths/register src/main.ts -w src",
+    "dev": "nodemon -r tsconfig-paths/register src/example/app.ts -w src",
     "build": "vite build",
     "lint": "eslint --ext .js,.ts --ignore-path .gitignore --no-fix src test",
     "start:prod": "nodemon server.js",
@@ -29,16 +32,20 @@
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
     "@vitest/coverage-c8": "^0.29.3",
+    "@vitest/ui": "^0.30.1",
     "eslint": "^8.36.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-vitest": "^0.0.54",
     "eslint-plugin-vitest-globals": "^1.3.1",
-    "tsconfig-paths": "^4.1.2",
-    "typescript": "^4.9.5",
-    "vite": "^4.1.0",
+    "nodemon": "^2.0.22",
+    "supertest": "^6.3.3",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.0.4",
+    "vite": "^4.2.1",
     "vite-plugin-dts": "^2.2.0",
-    "vitest": "^0.29.3",
-    "vitest-mock-extended": "^1.1.1",
+    "vitest": "^0.30.1",
+    "vitest-mock-extended": "^1.1.3",
     "vitest-sonar-reporter": "^0.3.5"
   },
   "dependencies": {

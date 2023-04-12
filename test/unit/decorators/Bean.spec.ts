@@ -1,5 +1,5 @@
 import { flushPromises } from '@test/utils/testUtils';
-import { Bean } from '@/main';
+import { Bean } from '@/decorators/Bean';
 import { registeredBeans } from '@/decorators';
 
 vi.mock('@/decorators', () => ({

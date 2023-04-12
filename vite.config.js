@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        '@test': fileURLToPath(new URL('./test', import.meta.url)),
       },
     },
     plugins: [
@@ -39,6 +40,21 @@ export default defineConfig(({ mode }) => {
         },
         external: Object.keys(packageJson.dependencies),
       },
+    },
+    test: {
+      globals: true,
+      reporters: [
+        'default',
+        'vitest-sonar-reporter',
+      ],
+      outputFile: './coverage/sonar.xml',
+      coverage: {
+        provider: 'c8',
+        reporter: ['text', 'lcovonly'],
+        reportsDirectory: './coverage',
+      },
+      environment: 'node',
+
     },
     define: {
       __APP_ENV__: env.APP_ENV,

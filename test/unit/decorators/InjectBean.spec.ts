@@ -1,9 +1,7 @@
 import { flushPromises } from '@test/utils/testUtils';
-import { InjectBean } from '@/main';
-import { injections } from '@/decorators';
+import { InjectBean } from '@/decorators/InjectBean';
 
 vi.mock('@/decorators', () => ({
-  injections: new Map(),
   logger: {
     info: vi.fn(),
     debug: vi.fn(),
@@ -14,7 +12,6 @@ vi.mock('@/decorators', () => ({
 describe('InjectBean.ts', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    injections.clear();
   });
 
   it('injects a dependency', async () => {
@@ -115,7 +112,6 @@ describe('InjectBean.ts', () => {
         return this.dep;
       }
     }
-    injections.clear();
     const instance = new Class();
 
     // WHEN
