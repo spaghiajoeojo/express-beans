@@ -2,18 +2,18 @@ import { flushPromises } from '@test/utils/testUtils';
 import { Bean } from '@/main';
 import { registeredBeans } from '@/decorators';
 
-vi.mock('@/decorators', () => ({
+jest.mock('@/decorators', () => ({
   registeredBeans: new Map(),
   logger: {
-    info: vi.fn(),
-    debug: vi.fn(),
-    error: vi.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
 describe('Bean.ts', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
     registeredBeans.clear();
   });
 
@@ -24,6 +24,7 @@ describe('Bean.ts', () => {
       id = 42;
     }
     const C: any = Class;
+    await flushPromises();
     await flushPromises();
 
     // THEN

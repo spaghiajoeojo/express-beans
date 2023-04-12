@@ -7,8 +7,8 @@ import { Bean } from '@/decorators/Bean';
  * @decorator
  */
 export function RouterBean(path: string) {
-  return (target: any) => {
-    Bean(target);
+  return (target: any, context: any) => {
+    Bean(target, context);
     const router = express.Router();
     Reflect.defineProperty(target.instance, 'routerConfig', {
       get: () => ({ path, router }),
