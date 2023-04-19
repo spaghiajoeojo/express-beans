@@ -1,18 +1,15 @@
 import { flushPromises } from '@test/utils/testUtils';
 import * as http from 'http';
 import { Request, Response } from 'express';
-import supertest from 'supertest';
+import request from 'supertest';
 import ExpressBeans from '@/ExpressBeans';
 import { Route, RouterBean } from '@/main';
 
 describe('ExpressBeans.ts', () => {
   let server: http.Server;
   let application: ExpressBeans;
-  beforeEach(async () => {
-    vi.resetModules();
-    application = new ExpressBeans({ listen: false });
-    server = application.getApp().listen(8080);
-    await flushPromises();
+  beforeEach(() => {
+    jest.resetModules();
   });
 
   afterEach(() => {
@@ -29,17 +26,21 @@ describe('ExpressBeans.ts', () => {
       }
     }
     application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
-    server = application.getApp().listen(8080);
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
 
     // WHEN
-    const { body } = supertest(server).get('/test/42');
+    const { text } = await request(server).get('/test/42').expect(200);
 
     // THEN
-    expect(body).toBe(true);
+    expect(text).toBe('42 is the answer');
   });
 
   test('creation of a new application', async () => {
     // WHEN
+    application = new ExpressBeans({ listen: false });
+    server = application.getApp().listen(3000);
     await flushPromises();
 
     // THEN

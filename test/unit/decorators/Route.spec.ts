@@ -3,19 +3,19 @@ import { Request, Response } from 'express';
 import { Route } from '@/decorators/Route';
 import { registeredBeans, registeredMethods } from '@/decorators';
 
-vi.mock('@/decorators', () => ({
+jest.mock('@/decorators', () => ({
   registeredBeans: new Map(),
   registeredMethods: new Map(),
   logger: {
-    info: vi.fn(),
-    debug: vi.fn(),
-    error: vi.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
 describe('Route.ts', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
     registeredMethods.clear();
     registeredBeans.clear();
   });
@@ -32,7 +32,7 @@ describe('Route.ts', () => {
     'PATCH',
   ])('registers a %s route', async (method: any) => {
     // GIVEN
-    const mock = vi.fn();
+    const mock = jest.fn();
     class Class {
       @Route(method, '/num')
       getNum(_req: Request, res: Response) {

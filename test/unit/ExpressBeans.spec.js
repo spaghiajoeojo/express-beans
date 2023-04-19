@@ -3,30 +3,34 @@ import { flushPromises } from '@test/utils/testUtils';
 import ExpressBeans from '@/ExpressBeans';
 import { logger, registeredBeans } from '@/decorators';
 
-vi.mock('express');
-vi.mock('@/decorators', () => ({
+jest.mock('express');
+jest.mock('@/decorators', () => ({
   registeredBeans: new Map(),
   logger: {
-    info: vi.fn(),
-    debug: vi.fn(),
-    error: vi.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
 describe('ExpressBeans.ts', () => {
+  const realSetImmediate = setImmediate;
   const expressMock = {
-    disable: vi.fn(),
-    listen: vi.fn(),
-    use: vi.fn(),
+    disable: jest.fn(),
+    listen: jest.fn(),
+    use: jest.fn(),
   };
 
   beforeEach(async () => {
-    vi.clearAllMocks();
-    vi.resetAllMocks();
-    vi.resetModules();
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+    jest.resetModules();
     registeredBeans.clear();
     express.mockReturnValue(expressMock);
     expressMock.use.mockClear();
+    global.setImmediate = jest.fn().mockImplementation((cb) => {
+      realSetImmediate(cb);
+    });
     await flushPromises();
   });
 
@@ -34,6 +38,21 @@ describe('ExpressBeans.ts', () => {
     // GIVEN
     expressMock.listen.mockImplementation((port, cb) => cb());
     const application = new ExpressBeans();
+
+    // WHEN
+    await flushPromises();
+
+    // THEN
+    expect(application instanceof ExpressBeans).toBe(true);
+    expect(expressMock.disable).toBeCalledWith('x-powered-by');
+    expect(expressMock.listen).toBeCalledWith(8080, expect.any(Function));
+    expect(logger.info).toBeCalledWith('Server listening on port 8080');
+  });
+
+  test('creation of a new application with static method', async () => {
+    // GIVEN
+    expressMock.listen.mockImplementation((port, cb) => cb());
+    const application = await ExpressBeans.createApp();
 
     // WHEN
     await flushPromises();
@@ -66,6 +85,56 @@ describe('ExpressBeans.ts', () => {
 
     // THEN
     expect(expressApp).toBe(expressMock);
+  });
+
+  it('calls onInitialized callback', async () => {
+    // GIVEN
+    expressMock.listen.mockImplementation((port, cb) => cb());
+    const onInitialized = jest.fn();
+
+    // WHEN
+    const application = new ExpressBeans({ onInitialized });
+    await flushPromises();
+
+    // THEN
+    expect(application instanceof ExpressBeans).toBe(true);
+    expect(onInitialized).toBeCalled();
+  });
+
+  it('calls onError callback', async () => {
+    // GIVEN
+    const error = new Error('Port already in use');
+    expressMock.listen.mockImplementation(() => {
+      throw error;
+    });
+    const onError = jest.fn();
+
+    // WHEN
+    const application = new ExpressBeans({ onError });
+    await flushPromises();
+
+    // THEN
+    expect(application instanceof ExpressBeans).toBe(true);
+    expect(onError).toBeCalledWith(error);
+  });
+
+  it('throws an error if listen function fails', async () => {
+    // GIVEN
+    global.setImmediate.mockImplementationOnce((cb) => {
+      cb();
+    });
+    const error = new Error('Port already in use');
+    expressMock.listen.mockImplementationOnce(() => {
+      throw error;
+    });
+
+    // WHEN
+    try {
+      await ExpressBeans.createApp();
+      await flushPromises();
+    } catch (err) {
+      expect(err).toBe(error);
+    }
   });
 
   it('accepts a list of beans', async () => {
@@ -167,13 +236,43 @@ describe('ExpressBeans.ts', () => {
 
     try {
       // WHEN
-      const promise = new Promise((resolve, reject) => {
-        ExpressBeans.createApp({ routerBeans: beans, onInitialized: resolve, onError: reject });
-      });
-      await promise;
-      // THEN
-      expect.fail('error not caught');
+      await ExpressBeans.createApp({ routerBeans: beans });
     } catch (e) {
+      // THEN
+      expect(e).toStrictEqual(new Error('Router Bean3 not initialized correctly'));
+    }
+  });
+
+  it('throws an error (no callback) if a router has not created correctly', async () => {
+    // GIVEN
+    const bean1 = class Bean1 {};
+    const bean2 = class Bean2 {};
+    const bean3 = class Bean3 {};
+    const beans = [bean1, bean2, bean3];
+    beans.forEach((Bean, index) => {
+      Bean.isExpressBean = true;
+      Bean.className = `Bean${index + 1}`;
+      const bean = new Bean();
+      bean.className = `Bean${index + 1}`;
+      bean.routerConfig = {
+        path: `router-path/${index}`,
+        router: { id: index },
+      };
+      registeredBeans.set(Bean.className, bean);
+    });
+    const error = new Error('router initialization failed');
+    expressMock.use
+      .mockReturnValueOnce(undefined)
+      .mockReturnValueOnce(undefined)
+      .mockImplementationOnce(() => {
+        throw error;
+      });
+
+    try {
+      // WHEN
+      ExpressBeans.createApp({ routerBeans: beans });
+    } catch (e) {
+      // THEN
       expect(e).toStrictEqual(new Error('Router Bean3 not initialized correctly'));
     }
   });

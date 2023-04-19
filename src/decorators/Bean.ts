@@ -4,6 +4,7 @@ import { registeredMethods, logger, registeredBeans } from '@/decorators';
  * Instantiates a new instance of the singleton and registers it
  * @decorator
  * @param target
+ * @param context
  */
 export function Bean(target: any, context: ClassDecoratorContext) {
   logger.debug(`Registering singleton: ${context.name}`);

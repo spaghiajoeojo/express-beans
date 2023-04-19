@@ -1,23 +1,30 @@
 import express, { Express } from 'express';
-import { ExpressBeansOptions } from '@/ExpressBeansTypes';
+import { CreateExpressBeansOptions, ExpressBeansOptions } from '@/ExpressBeansTypes';
 import { logger, registeredBeans } from '@/decorators';
 
 export default class ExpressBeans {
   private readonly app: Express;
 
+  private onInitialized: (() => void) | undefined;
+
   /**
    * Creates a new ExpressBeans application
    * @param options {ExpressBeansOptions}
    */
-  static createApp(options?: Partial<ExpressBeansOptions>) {
-    return new ExpressBeans(options);
+  static createApp(options?: Partial<CreateExpressBeansOptions>) {
+    return new Promise((resolve, reject) => {
+      let app: ExpressBeans;
+      const onInitialized = () => {
+        resolve(app);
+      };
+      app = new ExpressBeans({ ...options, onInitialized, onError: reject });
+    });
   }
 
   /**
    * Constructor of ExpressBeans application
    * @constructor
    * @param options {ExpressBeansOptions}
-   * @param onInitialized {Function}
    */
   constructor(options?: Partial<ExpressBeansOptions>) {
     this.app = express();
@@ -41,19 +48,23 @@ export default class ExpressBeans {
     onInitialized,
     onError,
   }: Partial<ExpressBeansOptions>) {
+    this.onInitialized = onInitialized;
     const invalidBeans = routerBeans
       .filter(((bean) => !bean.isExpressBean))
       .map((object) => object.prototype.constructor.name);
     if (invalidBeans.length > 0) {
       throw new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`);
     }
-    setImmediate(() => {
+    setImmediate(async () => {
       try {
         Array.from(registeredBeans.values())
           .filter((bean) => bean.routerConfig)
           .forEach((bean) => {
             try {
-              const { path, router } = bean.routerConfig!;
+              const {
+                path,
+                router,
+              } = bean.routerConfig!;
               logger.debug(`Registering router ${bean.className}`);
               this.app.use(path, router);
             } catch (e) {
@@ -62,12 +73,7 @@ export default class ExpressBeans {
             }
           });
         if (listen) {
-          this.app.listen(port, () => {
-            logger.info(`Server listening on port ${port}`);
-            if (onInitialized) {
-              onInitialized();
-            }
-          });
+          this.listen(port);
         }
       } catch (err: any) {
         if (onError) {
@@ -75,6 +81,15 @@ export default class ExpressBeans {
         } else {
           throw err;
         }
+      }
+    });
+  }
+
+  listen(port: number) {
+    return this.app.listen(port, () => {
+      logger.info(`Server listening on port ${port}`);
+      if (this.onInitialized) {
+        this.onInitialized();
       }
     });
   }

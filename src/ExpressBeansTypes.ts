@@ -15,6 +15,11 @@ export interface ExpressBeansOptions {
   onError?: (err: Error) => void,
 }
 
+export interface CreateExpressBeansOptions {
+  port: number,
+  routerBeans: Array<any>,
+}
+
 export declare type HTTPMethod =
   'GET' |
   'HEAD' |

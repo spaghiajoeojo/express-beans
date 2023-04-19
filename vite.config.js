@@ -2,6 +2,8 @@ import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'path';
 import { fileURLToPath, URL } from 'node:url';
 import dts from 'vite-plugin-dts';
+import babel from 'vite-plugin-babel';
+import typescript from '@rollup/plugin-typescript';
 import packageJson from './package.json';
 
 // https://vitejs.dev/config/
@@ -22,6 +24,18 @@ export default defineConfig(({ mode }) => {
         insertTypesEntry: true,
         outputDir: 'dist/types',
       }),
+      babel({
+        babelConfig: {
+          babelrc: false,
+          configFile: false,
+          plugins: [
+            [
+              '@babel/plugin-proposal-decorators',
+              { version: '2023-01' },
+            ],
+          ],
+        },
+      }),
     ],
     build: {
       minify: false,
@@ -32,10 +46,14 @@ export default defineConfig(({ mode }) => {
         fileName: (format) => `express-beans.${format}.js`,
       },
       rollupOptions: {
+        plugins: [
+          typescript(),
+        ],
         input: {
           main: resolve(__dirname, 'src/main.ts'),
         },
         output: {
+          sourcemap: true,
           exports: 'named',
         },
         external: Object.keys(packageJson.dependencies),
@@ -54,7 +72,6 @@ export default defineConfig(({ mode }) => {
         reportsDirectory: './coverage',
       },
       environment: 'node',
-
     },
     define: {
       __APP_ENV__: env.APP_ENV,

@@ -1,17 +1,17 @@
 import { flushPromises } from '@test/utils/testUtils';
 import { InjectBean } from '@/decorators/InjectBean';
 
-vi.mock('@/decorators', () => ({
+jest.mock('@/decorators', () => ({
   logger: {
-    info: vi.fn(),
-    debug: vi.fn(),
-    error: vi.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
 describe('InjectBean.ts', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
   });
 
   it('injects a dependency', async () => {
@@ -23,7 +23,7 @@ describe('InjectBean.ts', () => {
     // WHEN
     class Class {
       @InjectBean(TypeA)
-        dep!: TypeA;
+      private dep!: TypeA;
 
       getDep() {
         return this.dep;
@@ -102,8 +102,6 @@ describe('InjectBean.ts', () => {
   it('throws an error when dependency is not found', async () => {
     // GIVEN
     class TypeA {}
-    const T: any = TypeA;
-    T.instance = new TypeA();
     class Class {
       @InjectBean(TypeA)
         dep!: TypeA;
@@ -112,13 +110,14 @@ describe('InjectBean.ts', () => {
         return this.dep;
       }
     }
-    const instance = new Class();
+
 
     // WHEN
     let dep;
     expect(() => {
+      const instance = new Class();
       dep = instance.getDep();
-    }).toThrow(new Error('Injection Failed'));
+    }).toThrow(new Error('Cannot get instance from TypeA. Make sure that TypeA has @Bean as class decorator'));
 
     // THEN
     expect(dep).toBe(undefined);

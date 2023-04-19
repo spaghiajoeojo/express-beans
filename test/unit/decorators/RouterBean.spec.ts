@@ -3,26 +3,26 @@ import express from 'express';
 import { RouterBean } from '@/decorators/RouterBean';
 import { registeredBeans } from '@/decorators';
 
-vi.mock('express');
-vi.mock('@/decorators', () => ({
+jest.mock('express');
+jest.mock('@/decorators', () => ({
   registeredBeans: new Map(),
   logger: {
-    info: vi.fn(),
-    debug: vi.fn(),
-    error: vi.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
 describe('RouterBean.ts', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
     registeredBeans.clear();
   });
 
   it('registers a router bean', async () => {
     // GIVEN
     const router = { id: 'router-id' };
-    express.Router = vi.fn().mockReturnValue(router);
+    express.Router = jest.fn().mockReturnValue(router);
 
     // WHEN
     @RouterBean('/route')

@@ -3,7 +3,7 @@
     "target": "ES5",
     "allowJs": true,
     "useDefineForClassFields": true,
-    "module": "CommonJS",
+    "module": "ESNext",
     "lib": ["ESNext"],
     "moduleResolution": "node",
     "strict": true,
@@ -19,6 +19,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "declaration": true,
+    "sourceMap": true,
     "outDir": "dist",
     "declarationDir": "dist",
     "baseUrl": "src",
@@ -26,7 +27,7 @@
       "@/*": ["*"],
       "@test/*": ["../test/*"]
     },
-    "types": ["vitest/globals"]
+    "types": ["node", "jest"]
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules"]
