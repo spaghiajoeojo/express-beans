@@ -6,14 +6,13 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "airbnb-base",
-    "plugin:vitest-globals/recommended"
+    "airbnb-base"
   ],
   "overrides": [
     {
       "files": ["**/test/*.{j,t}s?(x)", "**/*.spec.{j,t}s?(x)"],
       "env": {
-        "vitest-globals/env": true
+        "jest": true
       }
     }
   ],
@@ -23,8 +22,7 @@
     "sourceType": "module"
   },
   "plugins": [
-    "@typescript-eslint",
-    "vitest"
+    "@typescript-eslint"
   ],
   "rules": {
     "indent": [

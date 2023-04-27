@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
-    "experimentalDecorators": true,
-    "target": "ESNext",
+    "target": "ES2015",
     "allowJs": true,
     "useDefineForClassFields": true,
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": ["ESNext"],
     "moduleResolution": "node",
     "strict": true,
@@ -20,6 +19,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "declaration": true,
+    "sourceMap": true,
     "outDir": "dist",
     "declarationDir": "dist",
     "baseUrl": "src",
@@ -27,8 +27,8 @@
       "@/*": ["*"],
       "@test/*": ["../test/*"]
     },
-    "types": ["vitest/globals"]
+    "types": ["node", "jest"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules"]
 }

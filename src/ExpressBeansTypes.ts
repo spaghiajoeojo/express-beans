@@ -3,14 +3,24 @@ import { Router } from 'express';
 export interface ExpressBean {
   className: string,
   instance: any,
-  routerConfig?: { path: string, router: Router},
   isExpressBean: boolean,
+}
+
+export interface ExpressRouterBean extends ExpressBean {
+  routerConfig: { path: string, router: Router},
 }
 
 export interface ExpressBeansOptions {
   listen: boolean,
   port: number,
-  beans: any[],
+  routerBeans: Array<any>,
+  onInitialized?: () => void,
+  onError?: (err: Error) => void,
+}
+
+export interface CreateExpressBeansOptions {
+  port: number,
+  routerBeans: Array<any>,
 }
 
 export declare type HTTPMethod =
