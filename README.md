@@ -1,4 +1,7 @@
-![logo.svg](assets%2Flogo.svg)
+<p align="center">
+  <img src="assets/logo.svg">
+</p>
+
 ![GitHub](https://img.shields.io/github/license/spaghiajoeojo/express-beans)
 ![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/spaghiajoeojo/express-beans)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/?branch=main)
