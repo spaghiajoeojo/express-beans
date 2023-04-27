@@ -49,12 +49,7 @@ export default class ExpressBeans {
     onError,
   }: Partial<ExpressBeansOptions>) {
     this.onInitialized = onInitialized;
-    const invalidBeans = routerBeans
-      .filter(((bean) => !bean.isExpressBean))
-      .map((object) => object.prototype.constructor.name);
-    if (invalidBeans.length > 0) {
-      throw new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`);
-    }
+    this.checkRouterBeans(routerBeans);
     setImmediate(async () => {
       try {
         this.registerRouters();
@@ -102,6 +97,15 @@ export default class ExpressBeans {
           throw new Error(`Router ${bean.className} not initialized correctly`);
         }
       });
+  }
+
+  private checkRouterBeans(routerBeans: Array<ExpressRouterBean>) {
+    const invalidBeans = routerBeans
+      .filter(((bean) => !bean.isExpressBean))
+      .map((object: any) => object.prototype.constructor.name);
+    if (invalidBeans.length > 0) {
+      throw new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`);
+    }
   }
 
   /**
