@@ -47,20 +47,6 @@ export default defineConfig(({ mode }) => {
         external: Object.keys(packageJson.dependencies),
       },
     },
-    test: {
-      globals: true,
-      reporters: [
-        'default',
-        'vitest-sonar-reporter',
-      ],
-      outputFile: './coverage/sonar.xml',
-      coverage: {
-        provider: 'c8',
-        reporter: ['text', 'lcovonly'],
-        reportsDirectory: './coverage',
-      },
-      environment: 'node',
-    },
     define: {
       __APP_ENV__: env.APP_ENV,
     },

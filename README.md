@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg">
+  <img src="assets/logo.svg" alt="">
 </p>
 
 ![GitHub](https://img.shields.io/github/license/spaghiajoeojo/express-beans)
@@ -19,6 +19,34 @@ ExpressBeans is an almost zero dependency framework (it wraps Express.js) to off
 Try ExpressBeans with the official generator:
 ```console
 npm create express-beans-server
+```
+
+## Usage
+All you need is create an ExpressBeans application and provide your `RouterBean` classes:
+```ts
+ExpressBeans.createApp({
+  routerBeans: [
+    ExampleRouter,
+  ],
+});
+
+/* ======== OR ======== */
+
+const application = new ExpressBeans({
+  routerBeans: [
+    ExampleRouter,
+  ],
+});
+```
+
+If you need also direct access to `express` application:
+```ts
+const application = new ExpressBeans({
+  routerBeans: [
+    ExampleRouter,
+  ],
+});
+const expressApp = application.getApp();
 ```
 
 ## Typescript 5
