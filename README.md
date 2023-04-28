@@ -21,6 +21,9 @@ Try ExpressBeans with the official generator:
 npm create express-beans-server
 ```
 
+## Documentation
+API docs and types available in [documentation](https://spaghiajoeojo.github.io/express-beans/).
+
 ## Usage
 All you need is create an ExpressBeans application and provide your `RouterBean` classes:
 ```ts
