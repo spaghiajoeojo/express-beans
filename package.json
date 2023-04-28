@@ -1,6 +1,6 @@
 {
   "name": "express-beans",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/spaghiajoeojo/express-beans.git"
@@ -10,7 +10,7 @@
     "lint": "eslint --ext .js,.ts --ignore-path .gitignore --no-fix src test",
     "test": "jest",
     "coverage": "jest --coverage",
-    "generate:docs": "typedoc src/main.ts"
+    "generate:docs": "typedoc --out docs src/main.ts"
   },
   "files": [
     "dist"

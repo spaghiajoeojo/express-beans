@@ -1,6 +1,5 @@
 import pretty from 'pino-pretty';
 import pino from 'pino';
-import * as process from 'process';
 
 export default class Logger {
   static create(scope: string) {
@@ -14,6 +13,8 @@ export default class Logger {
     );
     if (process.env.NODE_ENV !== 'production') {
       logger.level = 'debug';
+    } else {
+      logger.level = 'info';
     }
     return logger;
   }
