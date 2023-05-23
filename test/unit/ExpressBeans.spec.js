@@ -1,9 +1,11 @@
 import express from 'express';
 import { flushPromises } from '@test/utils/testUtils';
+import { pinoHttp } from 'pino-http';
 import ExpressBeans from '@/ExpressBeans';
 import { logger, registeredBeans } from '@/decorators';
 
 jest.mock('express');
+jest.mock('pino-http');
 jest.mock('@/decorators', () => ({
   registeredBeans: new Map(),
   logger: {
@@ -207,6 +209,8 @@ describe('ExpressBeans.ts', () => {
 
   it('registers router beans in express application', async () => {
     // GIVEN
+    const loggerMock = jest.fn();
+    pinoHttp.mockReturnValueOnce(loggerMock);
     const bean1 = class Bean1 {};
     const bean2 = class Bean2 {};
     const bean3 = class Bean3 {};
@@ -230,7 +234,8 @@ describe('ExpressBeans.ts', () => {
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
-    expect(expressMock.use).toBeCalledTimes(3);
+    expect(expressMock.use).toBeCalledTimes(4);
+    expect(expressMock.use).toHaveBeenCalledWith(expect.any(Function));
     expect(expressMock.use).toHaveBeenCalledWith('router-path/0', { id: 0 });
     expect(expressMock.use).toHaveBeenCalledWith('router-path/1', { id: 1 });
     expect(expressMock.use).toHaveBeenCalledWith('router-path/2', { id: 2 });
@@ -255,6 +260,7 @@ describe('ExpressBeans.ts', () => {
     });
     const error = new Error('router initialization failed');
     expressMock.use
+      .mockReturnValueOnce(undefined)
       .mockReturnValueOnce(undefined)
       .mockReturnValueOnce(undefined)
       .mockImplementationOnce(() => {
