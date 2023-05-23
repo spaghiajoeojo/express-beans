@@ -1,4 +1,6 @@
-import express, { Express } from 'express';
+import express, { Express, Request } from 'express';
+import { pinoHttp, startTime } from 'pino-http';
+import { ServerResponse, IncomingMessage } from 'http';
 import { CreateExpressBeansOptions, ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
 import { logger, registeredBeans } from '@/decorators';
 
@@ -29,7 +31,31 @@ export default class ExpressBeans {
   constructor(options?: Partial<ExpressBeansOptions>) {
     this.app = express();
     this.app.disable('x-powered-by');
+    this.app.use(pinoHttp(
+      {
+        logger,
+        customSuccessMessage: this.serializeRequest.bind(this),
+        customErrorMessage: this.serializeRequest.bind(this),
+      },
+    ));
     this.initialize(options || {});
+  }
+
+  private serializeRequest(req: IncomingMessage, res: ServerResponse) {
+    const request: Request = req as Request;
+    const remoteAddress = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+    const { method, originalUrl, httpVersion } = request;
+    const responseTime = Date.now() - res[startTime];
+    const optionals = [
+      res.statusCode,
+      res.getHeader('content-length'),
+      res.getHeader('content-type'),
+      request.headers.referer,
+      request.headers['user-agent'],
+    ]
+      .filter((i) => !!i)
+      .join(' ');
+    return `${remoteAddress} - "${method} ${originalUrl} HTTP/${httpVersion}" ${optionals} - ${responseTime}ms`;
   }
 
   /**

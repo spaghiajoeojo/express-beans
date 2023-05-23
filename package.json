@@ -5,6 +5,7 @@
     "type": "git",
     "url": "https://github.com/spaghiajoeojo/express-beans.git"
   },
+  "license": "MIT",
   "scripts": {
     "build": "vite build",
     "lint": "eslint --ext .js,.ts --ignore-path .gitignore --no-fix src test",
@@ -64,6 +65,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "pino": "^8.11.0",
+    "pino-http": "^8.3.3",
     "pino-pretty": "^10.0.0"
   }
 }
