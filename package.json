@@ -11,7 +11,8 @@
     "lint": "eslint --ext .js,.ts --ignore-path .gitignore --no-fix src test",
     "test": "jest",
     "coverage": "jest --coverage",
-    "generate:docs": "typedoc --out docs src/main.ts"
+    "generate:docs": "typedoc --out docs src/main.ts",
+    "sonar": "sonar-scanner"
   },
   "files": [
     "dist"
@@ -53,6 +54,7 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "jest": "^29.5.0",
     "nodemon": "^2.0.22",
+    "sonarqube-scanner": "^3.0.1",
     "supertest": "^6.3.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
