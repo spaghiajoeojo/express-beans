@@ -1,0 +1,22 @@
+name: Build
+on:
+  push:
+    branches:
+      - feature/*
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm run coverage
+      - run: npm run sonar -- -Dsonar.login=${{ secrets.SONAR_TOKEN }}
