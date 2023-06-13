@@ -3,7 +3,10 @@ import { ExpressRouterBean, HTTPMethod } from '@/ExpressBeansTypes';
 import { logger, registeredMethods } from '@/decorators';
 import { RouterMethods } from '@/RouterMethods';
 
-declare type RouterBeanHandler = (req: Request, res: Response, next?: NextFunction) => void;
+// Return type here should be "void | Promise<void>" but it is not possible to do it.
+// Using "any" instead
+// https://github.com/microsoft/TypeScript/issues/43921
+declare type RouterBeanHandler = (req: Request, res: Response, next?: NextFunction) => any;
 
 /**
  * Registers a RequestHandler

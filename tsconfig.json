@@ -4,7 +4,9 @@
     "allowJs": true,
     "useDefineForClassFields": true,
     "module": "CommonJS",
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "moduleResolution": "node",
     "strict": true,
     "resolveJsonModule": true,
@@ -24,11 +26,26 @@
     "declarationDir": "dist",
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"],
-      "@test/*": ["../test/*"]
+      "@/*": [
+        "*"
+      ],
+      "@test/*": [
+        "../test/*"
+      ]
     },
-    "types": ["node", "jest"]
+    "types": [
+      "node",
+      "jest"
+    ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
   },
-  "include": ["src/**/*", "test/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
