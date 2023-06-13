@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+*.tgz
 dist-ssr
 *.local
 coverage
