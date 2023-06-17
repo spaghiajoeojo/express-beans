@@ -1,0 +1,38 @@
+name: Publish Package to npmjs
+on:
+  release:
+    types: [published]
+  push:
+    branches:
+    - develop
+jobs:
+  Publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm run test
+      - name: Build
+        run: npm run build
+      - name: Determine version name
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            COMMIT_SHA=$(git rev-parse --short=6 HEAD)
+            npm version $(node -p -e "require('./package.json').version")-${COMMIT_SHA}-dev --no-git-tag-version --allow-same-version
+            echo "tag=dev" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Publish to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+        run: npm publish --access public --tag ${{ steps.version.outputs.tag }}
