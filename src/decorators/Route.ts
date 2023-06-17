@@ -21,7 +21,7 @@ export function Route<This>(httpMethod: HTTPMethod, path: string) {
   ) => {
     setImmediate(() => {
       const bean = registeredMethods.get(method) as ExpressRouterBean;
-      if (bean && bean.routerConfig) {
+      if (bean?.routerConfig) {
         const { routerConfig } = bean;
         const { router } = routerConfig;
         logger.debug(`Mapping ${bean.className}.${String(context.name)} with ${httpMethod} ${routerConfig.path}${path}`);
