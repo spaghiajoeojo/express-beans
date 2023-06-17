@@ -38,12 +38,12 @@ export default class ExpressBeans {
         customErrorMessage: this.serializeRequest.bind(this),
       },
     ));
-    this.initialize(options || {});
+    this.initialize(options ?? {});
   }
 
   private serializeRequest(req: IncomingMessage, res: ServerResponse) {
     const request: Request = req as Request;
-    const remoteAddress = request.headers['x-forwarded-for'] || request.socket.remoteAddress;
+    const remoteAddress = request.headers['x-forwarded-for'] ?? request.socket.remoteAddress;
     const { method, originalUrl, httpVersion } = request;
     const responseTime = Date.now() - res[startTime];
     const optionals = [
@@ -76,7 +76,7 @@ export default class ExpressBeans {
   }: Partial<ExpressBeansOptions>) {
     this.onInitialized = onInitialized;
     this.checkRouterBeans(routerBeans);
-    setImmediate(async () => {
+    setImmediate(() => {
       try {
         this.registerRouters();
         if (listen) {

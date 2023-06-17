@@ -5,10 +5,13 @@
 ![GitHub](https://img.shields.io/github/license/spaghiajoeojo/express-beans)
 ![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/spaghiajoeojo/express-beans)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/?branch=main)
-[![Code Coverage](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/badges/coverage.png?b=main)](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/?branch=main)
 ![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/spaghiajoeojo/express-beans/express)
 ![GitHub package.json dependency version (dev)](https://img.shields.io/github/package-json/dependency-version/spaghiajoeojo/express-beans/dev/typescript)
 [![Build Status](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/badges/build.png?b=main)](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/build-status/main)
+
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg)](https://sonarcloud.io/summary/new_code?id=express-beans)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=express-beans&metric=coverage)](https://sonarcloud.io/summary/new_code?id=express-beans)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=express-beans&metric=bugs)](https://sonarcloud.io/summary/new_code?id=express-beans)
 
 # ExpressBeans
 ExpressBeans is the IoC Container (Inversion of Control Container) that you didn't know you needed.
