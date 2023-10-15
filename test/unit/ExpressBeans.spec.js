@@ -303,10 +303,11 @@ describe('ExpressBeans.ts', () => {
 
     try {
       // WHEN
-      ExpressBeans.createApp({ routerBeans: beans });
+      await ExpressBeans.createApp({ routerBeans: beans });
+      jest.fail();
     } catch (e) {
       // THEN
-      expect(e).toStrictEqual(new Error('Router Bean3 not initialized correctly'));
+      expect(e).toStrictEqual(new Error('Router Bean2 not initialized correctly'));
     }
   });
 });
