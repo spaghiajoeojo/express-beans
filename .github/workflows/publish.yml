@@ -30,7 +30,7 @@ jobs:
             npm version $(node -p -e "require('./package.json').version")-${COMMIT_SHA}-dev --no-git-tag-version --allow-same-version
             echo "tag=dev" >> $GITHUB_OUTPUT
           else
-            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "tag=latest" >> $GITHUB_OUTPUT
           fi
       - name: Publish to NPM
         env:
