@@ -3,4 +3,4 @@ import { ExpressBean } from '@/ExpressBeansTypes';
 
 export const registeredBeans = new Map<string, ExpressBean>();
 export const registeredMethods = new Map<any, ExpressBean>();
-export const logger = Logger.create('ExpressBeans');
+export const logger = Logger();

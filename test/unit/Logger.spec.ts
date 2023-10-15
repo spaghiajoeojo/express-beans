@@ -17,7 +17,7 @@ describe('Logger.ts', () => {
     pinoConstructor.mockReturnValue(pinoMock);
 
     // WHEN
-    Logger.create('test-scope');
+    Logger('test-scope');
 
     // THEN
     expect(pino).toBeCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
@@ -32,7 +32,7 @@ describe('Logger.ts', () => {
     pinoConstructor.mockReturnValue(pinoMock);
 
     // WHEN
-    Logger.create('test-scope');
+    Logger('test-scope');
 
     // THEN
     expect(pino).toBeCalledWith({ msgPrefix: '[test-scope] ' }, undefined);

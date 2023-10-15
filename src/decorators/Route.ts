@@ -15,6 +15,7 @@ declare type RouteOptions = { middlewares: Array<RequestHandler> }
  * Registers a RequestHandler
  * @param httpMethod
  * @param path {string}
+ * @param options {RouteOptions}
  * @decorator
  */
 export function Route<This>(
