@@ -55,4 +55,22 @@ describe('Route.ts', () => {
     expect(mock.mock.calls[0][1].name)
       .toBe('bound getNum');
   });
+
+  it('does not registers a route on a generic Bean', async () => {
+    // GIVEN
+    const mock = jest.fn();
+    class Class {
+      @Route('GET', '/num')
+      getNum(_req: Request, res: Response) {
+        res.send('OK');
+      }
+    }
+    const bean: any = new Class();
+    registeredMethods.set(bean.getNum, bean);
+    registeredBeans.set('Class', bean);
+    await flushPromises();
+
+    // THEN
+    expect(mock).not.toBeCalled();
+  });
 });
