@@ -6,8 +6,8 @@ import { logger, registeredMethods } from '@/decorators';
    * @decorator
    */
 export function Setup<This>(
-  method: () => void,
-  context: ClassMethodDecoratorContext<This, () => void>,
+  method: () => any,
+  context: ClassMethodDecoratorContext<This, () => any>,
 ) {
   setImmediate(() => {
     const bean = registeredMethods.get(method) as ExpressBean;

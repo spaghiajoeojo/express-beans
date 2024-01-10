@@ -39,6 +39,29 @@ describe('Setup.ts', () => {
     // THEN
     expect(bean.initialized)
       .toBe(true);
-    expect(mock).toBeCalled();
+    expect(mock).toHaveBeenCalled();
+  });
+
+  it('execute a setup async function', async () => {
+    // GIVEN
+    const mock = jest.fn();
+    class Class {
+      initialized: boolean = false;
+
+      @Setup
+      async init() {
+        this.initialized = true;
+        mock();
+      }
+    }
+    const bean: any = new Class();
+    registeredMethods.set(bean.init, bean);
+    registeredBeans.set('Class', bean);
+    await flushPromises();
+
+    // THEN
+    expect(bean.initialized)
+      .toBe(true);
+    expect(mock).toHaveBeenCalled();
   });
 });

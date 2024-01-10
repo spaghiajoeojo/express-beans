@@ -20,7 +20,7 @@ describe('Logger.ts', () => {
     Logger('test-scope');
 
     // THEN
-    expect(pino).toBeCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
+    expect(pino).toHaveBeenCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
     expect(pinoMock.level).toBe('debug');
   });
 
@@ -35,7 +35,7 @@ describe('Logger.ts', () => {
     Logger('test-scope');
 
     // THEN
-    expect(pino).toBeCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
+    expect(pino).toHaveBeenCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
     expect(pinoMock.level).toBe('info');
   });
 });

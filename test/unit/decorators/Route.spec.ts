@@ -51,7 +51,43 @@ describe('Route.ts', () => {
     await flushPromises();
 
     // THEN
-    expect(mock).toBeCalledWith('/num', expect.any(Function));
+    expect(mock).toHaveBeenCalledWith('/num', expect.any(Function));
+    expect(mock.mock.calls[0][1].name)
+      .toBe('bound getNum');
+  });
+
+  it.each([
+    'GET',
+    'HEAD',
+    'POST',
+    'PUT',
+    'DELETE',
+    'CONNECT',
+    'OPTIONS',
+    'TRACE',
+    'PATCH',
+  ])('registers a %s route with async function', async (method: any) => {
+    // GIVEN
+    const mock = jest.fn();
+    class Class {
+      @Route(method, '/num')
+      async getNum(_req: Request, res: Response) {
+        res.send('OK');
+      }
+    }
+    const bean: any = new Class();
+    registeredMethods.set(bean.getNum, bean);
+    bean.routerConfig = {
+      path: '/router',
+      router: {
+        [method.toLowerCase()]: mock,
+      },
+    };
+    registeredBeans.set('Class', bean);
+    await flushPromises();
+
+    // THEN
+    expect(mock).toHaveBeenCalledWith('/num', expect.any(Function));
     expect(mock.mock.calls[0][1].name)
       .toBe('bound getNum');
   });
@@ -71,6 +107,6 @@ describe('Route.ts', () => {
     await flushPromises();
 
     // THEN
-    expect(mock).not.toBeCalled();
+    expect(mock).not.toHaveBeenCalled();
   });
 });
