@@ -33,7 +33,10 @@ describe('Route.ts', () => {
   ])('registers a %s route', async (method: any) => {
     // GIVEN
     const mock = jest.fn();
+    const resMock = { send: jest.fn() };
     class Class {
+      num = 42;
+
       @Route(method, '/num')
       getNum(_req: Request, res: Response) {
         res.send('OK');
@@ -49,11 +52,11 @@ describe('Route.ts', () => {
     };
     registeredBeans.set('Class', bean);
     await flushPromises();
+    mock.mock.calls[0][1](null, resMock);
 
     // THEN
     expect(mock).toHaveBeenCalledWith('/num', expect.any(Function));
-    expect(mock.mock.calls[0][1].name)
-      .toBe('bound getNum');
+    expect(resMock.send).toHaveBeenCalledWith('OK');
   });
 
   it.each([
@@ -69,7 +72,10 @@ describe('Route.ts', () => {
   ])('registers a %s route with async function', async (method: any) => {
     // GIVEN
     const mock = jest.fn();
+    const resMock = { send: jest.fn() };
     class Class {
+      num = 42;
+
       @Route(method, '/num')
       async getNum(_req: Request, res: Response) {
         res.send('OK');
@@ -85,11 +91,11 @@ describe('Route.ts', () => {
     };
     registeredBeans.set('Class', bean);
     await flushPromises();
+    mock.mock.calls[0][1](null, resMock);
 
     // THEN
     expect(mock).toHaveBeenCalledWith('/num', expect.any(Function));
-    expect(mock.mock.calls[0][1].name)
-      .toBe('bound getNum');
+    expect(resMock.send).toHaveBeenCalledWith('OK');
   });
 
   it('does not registers a route on a generic Bean', async () => {
