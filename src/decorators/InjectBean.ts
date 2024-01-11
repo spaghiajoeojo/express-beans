@@ -1,6 +1,7 @@
+import { ExpressBean } from '@/ExpressBeansTypes';
 import { logger } from '@/decorators';
 
-function getSingleton(singletonClass: any) {
+function getSingleton(singletonClass: any): ExpressBean {
   if (singletonClass) {
     if (singletonClass.instance) {
       return singletonClass.instance;
@@ -15,8 +16,8 @@ function getSingleton(singletonClass: any) {
  * @decorator
  * @param singletonClass
  */
-export function InjectBean(singletonClass: any) {
-  return (_value: any, context: ClassFieldDecoratorContext) => () => {
+export function InjectBean<T>(singletonClass: T) {
+  return (_value: any, context: ClassFieldDecoratorContext) => (): ExpressBean => {
     logger.debug(`initializing ${String(context.name)} with instance of bean ${getSingleton(singletonClass).className}`);
     return getSingleton(singletonClass);
   };
