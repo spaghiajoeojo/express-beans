@@ -60,6 +60,6 @@ describe('InjectLogger.ts', () => {
     // THEN
     instance.getLogger().debug('ciao');
     expect(instance.getLogger()).toBeDefined();
-    expect(Logger).toBeCalledWith('ClassBean');
+    expect(Logger).toHaveBeenCalledWith('ClassBean');
   });
 });

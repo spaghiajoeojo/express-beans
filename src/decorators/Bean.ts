@@ -20,9 +20,7 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
     .filter((method) => method !== 'constructor')
     .forEach((classMethod) => {
       logger.debug(`registering method ${String(classMethod)}`);
-      if (typeof singleton[classMethod] === 'function') {
-        registeredMethods.set(singleton[classMethod], singleton);
-      }
+      registeredMethods.set(singleton[classMethod], singleton);
     });
   singleton.className = target.name;
   registeredBeans.set(target.name, singleton);

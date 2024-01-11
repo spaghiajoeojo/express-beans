@@ -33,7 +33,10 @@ export function Route<This>(
         const { routerConfig } = bean;
         const { router } = routerConfig;
         logger.debug(`Mapping ${bean.className}.${String(context.name)} with ${httpMethod} ${routerConfig.path}${path}`);
-        router[RouterMethods[httpMethod]](path, ...options.middlewares, method.bind(bean));
+        router[RouterMethods[httpMethod]](path, ...options.middlewares, (req, res, next) => {
+          const result = method.bind(bean)(req, res);
+          Promise.resolve(result).catch(next);
+        });
       }
     });
     return method;

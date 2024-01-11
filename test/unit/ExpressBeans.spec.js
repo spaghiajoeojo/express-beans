@@ -46,9 +46,9 @@ describe('ExpressBeans.ts', () => {
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
-    expect(expressMock.disable).toBeCalledWith('x-powered-by');
-    expect(expressMock.listen).toBeCalledWith(8080, expect.any(Function));
-    expect(logger.info).toBeCalledWith('Server listening on port 8080');
+    expect(expressMock.disable).toHaveBeenCalledWith('x-powered-by');
+    expect(expressMock.listen).toHaveBeenCalledWith(8080, expect.any(Function));
+    expect(logger.info).toHaveBeenCalledWith('Server listening on port 8080');
   });
 
   test('creation of a new application with static method', async () => {
@@ -61,9 +61,9 @@ describe('ExpressBeans.ts', () => {
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
-    expect(expressMock.disable).toBeCalledWith('x-powered-by');
-    expect(expressMock.listen).toBeCalledWith(8080, expect.any(Function));
-    expect(logger.info).toBeCalledWith('Server listening on port 8080');
+    expect(expressMock.disable).toHaveBeenCalledWith('x-powered-by');
+    expect(expressMock.listen).toHaveBeenCalledWith(8080, expect.any(Function));
+    expect(logger.info).toHaveBeenCalledWith('Server listening on port 8080');
   });
 
   it('exposes use method of express application', async () => {
@@ -75,7 +75,7 @@ describe('ExpressBeans.ts', () => {
     application.use(middleware);
 
     // THEN
-    expect(expressMock.use).toBeCalledWith(middleware);
+    expect(expressMock.use).toHaveBeenCalledWith(middleware);
   });
 
   it('exposes express application', async () => {
@@ -100,7 +100,7 @@ describe('ExpressBeans.ts', () => {
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
-    expect(onInitialized).toBeCalled();
+    expect(onInitialized).toHaveBeenCalled();
   });
 
   it('calls onError callback', async () => {
@@ -117,7 +117,7 @@ describe('ExpressBeans.ts', () => {
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
-    expect(onError).toBeCalledWith(error);
+    expect(onError).toHaveBeenCalledWith(error);
   });
 
   it('throws an error if listen function fails', async () => {
@@ -160,8 +160,8 @@ describe('ExpressBeans.ts', () => {
     await flushPromises();
 
     // THEN
-    expect(mockExit).toBeCalledWith(1);
-    expect(app.onInitialized).not.toBeCalled();
+    expect(mockExit).toHaveBeenCalledWith(1);
+    expect(app.onInitialized).not.toHaveBeenCalled();
     mockExit.mockRestore();
   });
 
@@ -234,7 +234,7 @@ describe('ExpressBeans.ts', () => {
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
-    expect(expressMock.use).toBeCalledTimes(4);
+    expect(expressMock.use).toHaveBeenCalledTimes(4);
     expect(expressMock.use).toHaveBeenCalledWith(expect.any(Function));
     expect(expressMock.use).toHaveBeenCalledWith('router-path/0', { id: 0 });
     expect(expressMock.use).toHaveBeenCalledWith('router-path/1', { id: 1 });
