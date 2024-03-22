@@ -38,7 +38,7 @@ describe('Bean.ts', () => {
     // WHEN
     @Bean
     class Class {
-      static id: number = 1001;
+      id: number = 1001;
 
       getId() {
         return 42;
