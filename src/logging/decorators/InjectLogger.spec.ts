@@ -1,9 +1,9 @@
 import { flushPromises } from '@test/utils/testUtils';
-import { InjectLogger } from '@/decorators/InjectLogger';
+import { InjectLogger } from '@/logging/decorators/InjectLogger';
 import { Bean, Logger as PinoLogger } from '@/main';
-import Logger from '@/Logger';
+import Logger from '@/logging/Logger';
 
-jest.mock('@/decorators', () => ({
+jest.mock('@/core', () => ({
   registeredBeans: new Map(),
   registeredMethods: new Map(),
   logger: {
@@ -12,12 +12,12 @@ jest.mock('@/decorators', () => ({
     error: jest.fn(),
   },
 }));
-jest.mock('@/Logger');
+jest.mock('@/logging/Logger');
 
 describe('InjectLogger.ts', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    (Logger as jest.Mock).mockImplementation(jest.requireActual('@/Logger').default);
+    (Logger as jest.Mock).mockImplementation(jest.requireActual('@/logging/Logger').default);
   });
 
   it('injects a logger', async () => {

@@ -1,10 +1,10 @@
 import { flushPromises } from '@test/utils/testUtils';
 import express from 'express';
-import { RouterBean } from '@/decorators/RouterBean';
-import { registeredBeans } from '@/decorators';
+import { RouterBean } from '@/core/decorators/RouterBean';
+import { registeredBeans } from '@/core';
 
 jest.mock('express');
-jest.mock('@/decorators', () => ({
+jest.mock('@/core', () => ({
   registeredBeans: new Map(),
   logger: {
     info: jest.fn(),

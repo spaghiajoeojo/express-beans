@@ -33,3 +33,8 @@ export declare type HTTPMethod =
   'OPTIONS' |
   'TRACE' |
   'PATCH';
+
+export declare type Cache = {
+  type?: 'memory',
+  duration: number,
+}

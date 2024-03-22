@@ -1,12 +1,12 @@
 import express from 'express';
 import { flushPromises } from '@test/utils/testUtils';
 import { pinoHttp } from 'pino-http';
-import ExpressBeans from '@/ExpressBeans';
-import { logger, registeredBeans } from '@/decorators';
+import ExpressBeans from '@/core/ExpressBeans';
+import { logger, registeredBeans } from '@/core';
 
 jest.mock('express');
 jest.mock('pino-http');
-jest.mock('@/decorators', () => ({
+jest.mock('@/core', () => ({
   registeredBeans: new Map(),
   logger: {
     info: jest.fn(),

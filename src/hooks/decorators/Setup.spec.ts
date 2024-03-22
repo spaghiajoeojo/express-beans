@@ -1,8 +1,8 @@
 import { flushPromises } from '@test/utils/testUtils';
-import { registeredBeans, registeredMethods } from '@/decorators';
-import { Setup } from '@/decorators/Setup';
+import { registeredBeans, registeredMethods } from '@/core';
+import { Setup } from '@/hooks/decorators/Setup';
 
-jest.mock('@/decorators', () => ({
+jest.mock('@/core', () => ({
   registeredBeans: new Map(),
   registeredMethods: new Map(),
   logger: {

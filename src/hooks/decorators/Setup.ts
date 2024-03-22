@@ -1,5 +1,5 @@
 import { ExpressBean } from '@/ExpressBeansTypes';
-import { logger, registeredMethods } from '@/decorators';
+import { logger, registeredMethods } from '@/core';
 
 /**
    * Hook a function to initialization phase.

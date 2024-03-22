@@ -31,8 +31,9 @@ export default defineConfig(({ mode }) => {
         entry: resolve(__dirname, 'src/main.ts'),
         formats: ['es', 'cjs'],
         name: 'ExpressBeans',
-        fileName: (format) => `express-beans.${format}.js`,
+        fileName: (format) => `express-beans.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
+      sourcemap: true,
       rollupOptions: {
         plugins: [
           babel({ babelHelpers: 'bundled' }),
@@ -41,10 +42,12 @@ export default defineConfig(({ mode }) => {
           main: resolve(__dirname, 'src/main.ts'),
         },
         output: {
-          sourcemap: true,
           exports: 'named',
         },
-        external: Object.keys(packageJson.dependencies),
+        external: [
+          ...Object.keys(packageJson.dependencies),
+          'node:crypto',
+        ],
       },
     },
     define: {
