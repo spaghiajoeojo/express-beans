@@ -1,5 +1,5 @@
-import { logger } from '@/decorators';
-import Logger from '@/Logger';
+import { logger } from '@/core';
+import Logger from '@/logging/Logger';
 
 /**
  * Initializes a Logger with a specified prefix message

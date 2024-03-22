@@ -1,5 +1,5 @@
 import express from 'express';
-import { Bean } from '@/decorators/Bean';
+import { Bean } from '@/core/decorators/Bean';
 
 /**
  * Creates an ExpressBean and a Router for this class

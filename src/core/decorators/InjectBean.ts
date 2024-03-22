@@ -1,4 +1,4 @@
-import { logger } from '@/decorators';
+import { logger } from '@/core';
 
 function getSingleton(singletonClass: any) {
   if (singletonClass) {

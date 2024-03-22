@@ -1,4 +1,4 @@
-import { registeredMethods, logger, registeredBeans } from '@/decorators';
+import { registeredMethods, logger, registeredBeans } from '@/core';
 
 /**
  * Instantiates a new instance of the singleton and registers it
@@ -19,7 +19,7 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
   Reflect.ownKeys(Object.getPrototypeOf(singleton))
     .filter((method) => method !== 'constructor')
     .forEach((classMethod) => {
-      logger.debug(`registering method ${String(classMethod)}`);
+      logger.debug(`registering method ${target.name}.${String(classMethod)}`);
       registeredMethods.set(singleton[classMethod], singleton);
     });
   singleton.className = target.name;

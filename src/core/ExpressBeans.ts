@@ -2,7 +2,7 @@ import express, { Express, Request } from 'express';
 import { pinoHttp, startTime } from 'pino-http';
 import { ServerResponse, IncomingMessage } from 'http';
 import { CreateExpressBeansOptions, ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
-import { logger, registeredBeans } from '@/decorators';
+import { logger, registeredBeans } from '@/core';
 
 export default class ExpressBeans {
   private readonly app: Express;

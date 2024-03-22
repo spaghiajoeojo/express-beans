@@ -1,5 +1,5 @@
 import pino from 'pino';
-import Logger from '@/Logger';
+import Logger from '@/logging/Logger';
 import Mock = jest.Mock;
 
 jest.mock('pino');
