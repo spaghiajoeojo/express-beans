@@ -1,6 +1,6 @@
 {
   "name": "express-beans",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/spaghiajoeojo/express-beans.git"
@@ -63,15 +63,11 @@
     "tslib": "2.6.2",
     "typedoc": "0.25.7",
     "typescript": "5.3.3",
-    "vite": "5.0.11",
+    "vite": "5.2.10",
     "vite-plugin-dts": "3.7.0"
   },
-  "overrides": {
-    "semver": "7.5.3",
-    "optionator": "0.9.3"
-  },
   "dependencies": {
-    "express": "4.18.2",
+    "express": "4.19.2",
     "pino": "8.17.2",
     "pino-http": "9.0.0",
     "pino-pretty": "10.3.1"
