@@ -3,7 +3,7 @@
     "target": "ES2015",
     "allowJs": true,
     "useDefineForClassFields": true,
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": [
       "ESNext"
     ],
@@ -39,6 +39,7 @@
     "src/**/*"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "**/*.spec.ts",
   ]
 }
