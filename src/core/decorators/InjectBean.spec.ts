@@ -1,7 +1,7 @@
 import { flushPromises } from '@test/utils/testUtils';
-import { InjectBean } from '@/decorators/InjectBean';
+import { InjectBean } from '@/core/decorators/InjectBean';
 
-jest.mock('@/decorators', () => ({
+jest.mock('@/core', () => ({
   logger: {
     info: jest.fn(),
     debug: jest.fn(),

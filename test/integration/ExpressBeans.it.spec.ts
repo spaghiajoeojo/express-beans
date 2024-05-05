@@ -2,7 +2,7 @@ import { flushPromises } from '@test/utils/testUtils';
 import * as http from 'http';
 import { Request, Response } from 'express';
 import request from 'supertest';
-import ExpressBeans from '@/ExpressBeans';
+import ExpressBeans from '@/core/ExpressBeans';
 import { Route, RouterBean } from '@/main';
 
 describe('ExpressBeans.ts', () => {

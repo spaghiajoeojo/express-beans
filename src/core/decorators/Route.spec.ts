@@ -1,9 +1,9 @@
 import { flushPromises } from '@test/utils/testUtils';
 import { Request, Response } from 'express';
-import { Route } from '@/decorators/Route';
-import { registeredBeans, registeredMethods } from '@/decorators';
+import { Route } from '@/core/decorators/Route';
+import { registeredBeans, registeredMethods } from '@/core';
 
-jest.mock('@/decorators', () => ({
+jest.mock('@/core', () => ({
   registeredBeans: new Map(),
   registeredMethods: new Map(),
   logger: {
