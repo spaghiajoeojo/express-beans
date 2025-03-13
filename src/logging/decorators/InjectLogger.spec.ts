@@ -24,7 +24,7 @@ describe('InjectLogger.ts', () => {
     // GIVEN
     class Class {
       @InjectLogger()
-      private logger!: PinoLogger;
+      private logger: PinoLogger;
 
       getLogger() {
         return this.logger;
@@ -44,7 +44,7 @@ describe('InjectLogger.ts', () => {
     @Bean
     class ClassBean {
       @InjectLogger('ClassBean')
-      private logger!: PinoLogger;
+      private logger: PinoLogger;
 
       getLogger() {
         return this.logger;

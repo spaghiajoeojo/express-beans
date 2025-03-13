@@ -29,10 +29,10 @@ export function Route<This>(
   ) => {
     setImmediate(() => {
       const bean = registeredMethods.get(method) as ExpressRouterBean;
-      if (bean?.routerConfig) {
-        const { routerConfig } = bean;
-        const { router } = routerConfig;
-        logger.debug(`Mapping ${bean.className}.${String(context.name)} with ${httpMethod} ${routerConfig.path}${path}`);
+      if (bean._routerConfig) {
+        const { _routerConfig } = bean;
+        const { router } = _routerConfig;
+        logger.debug(`Mapping ${bean._className}.${String(context.name)} with ${httpMethod} ${_routerConfig.path}${path}`);
         router[RouterMethods[httpMethod]](path, ...options.middlewares, (req, res, next) => {
           const result = method.bind(bean)(req, res);
           Promise.resolve(result).catch(next);

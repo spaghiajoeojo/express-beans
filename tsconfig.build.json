@@ -1,15 +1,14 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ES2015",
     "allowJs": true,
     "useDefineForClassFields": true,
     "module": "CommonJS",
     "lib": [
       "ESNext"
     ],
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "strict": true,
-    "strictPropertyInitialization": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
@@ -20,24 +19,27 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "noEmit": true,
+    "declaration": true,
     "sourceMap": true,
+    "outDir": "dist",
+    "declarationDir": "dist",
     "paths": {
-      "@/*": ["./src/*"],
-      "@test/*": ["./test/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
     "types": [
-      "node",
-      "jest"
+      "node"
     ],
     "typeRoots": [
       "./node_modules/@types"
     ]
   },
   "include": [
-    "**/*.spec.ts",
+    "src/**/*"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "**/*.spec.ts",
   ]
 }

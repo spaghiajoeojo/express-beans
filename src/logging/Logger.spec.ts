@@ -12,6 +12,7 @@ describe('Logger.ts', () => {
 
   it('creates a logger', async () => {
     // GIVEN
+    process.env.NODE_ENV = '';
     const pinoMock: any = {};
     const pinoConstructor = pino as unknown as Mock;
     pinoConstructor.mockReturnValue(pinoMock);

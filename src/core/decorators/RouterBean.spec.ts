@@ -33,9 +33,9 @@ describe('RouterBean.ts', () => {
     await flushPromises();
 
     // THEN
-    expect(registeredBeans.get('Class')).toBe(C.instance);
-    expect(C.instance.id).toStrictEqual(42);
-    expect(C.instance.routerConfig).toStrictEqual({
+    expect(registeredBeans.get('Class')).toBe(C._instance);
+    expect(C._instance.id).toStrictEqual(42);
+    expect(C._instance._routerConfig).toStrictEqual({
       path: '/route',
       router,
     });
