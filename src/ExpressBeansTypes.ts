@@ -1,13 +1,13 @@
 import { Router } from 'express';
 
 export interface ExpressBean {
-  className: string,
-  instance: any,
-  isExpressBean: boolean,
+  _className: string,
+  _instance: any,
+  _beanUUID: string,
 }
 
 export interface ExpressRouterBean extends ExpressBean {
-  routerConfig: { path: string, router: Router},
+  _routerConfig: { path: string, router: Router},
 }
 
 export interface ExpressBeansOptions {

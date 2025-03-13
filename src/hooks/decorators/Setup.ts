@@ -11,7 +11,7 @@ export function Setup<This>(
 ) {
   setImmediate(() => {
     const bean = registeredMethods.get(method) as ExpressBean;
-    logger.debug(`Running setup function ${bean.className}.${String(context.name)}`);
+    logger.debug(`Running setup function ${bean._className}.${String(context.name)}`);
     method.bind(bean)();
   });
   return method;
