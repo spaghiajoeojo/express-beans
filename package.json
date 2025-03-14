@@ -7,7 +7,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias",
+    "build": "rimraf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "lint": "eslint --ext .js,.ts --ignore-path .gitignore --no-fix src test",
     "test": "jest --runInBand",
     "coverage": "jest --runInBand --coverage",

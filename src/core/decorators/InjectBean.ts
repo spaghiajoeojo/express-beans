@@ -1,18 +1,30 @@
 import { logger } from '@/core';
 import { ExpressBean } from '@/ExpressBeansTypes';
 
-function getSingleton<T>(singletonClass: T & ExpressBean): T & ExpressBean {
-  if (singletonClass) {
-    if (singletonClass._instance) {
-      return singletonClass._instance;
-    }
-    const className = Reflect.getOwnPropertyDescriptor(singletonClass, 'name')?.value;
-    if (!className) {
-      throw new Error(`Cannot get instance for a class without name: ${JSON.stringify(singletonClass)}`);
-    }
+function hasName(singletonClass: any) {
+  return singletonClass.name;
+}
+
+function isABean(singletonClass: any) {
+  return !!singletonClass._beanUUID && !!singletonClass._instance && !!singletonClass._className;
+}
+
+function getSingleton<T>(singletonClass: T): T {
+  if (!singletonClass) {
+    throw new Error('Please specify the type of Bean. Example: @InjectBean(BeanClass)');
+  }
+
+  if (!hasName(singletonClass)) {
+    throw new Error(`Cannot get instance for ${JSON.stringify(singletonClass)}: it is not an ExpressBean`);
+  }
+
+  if (!isABean(singletonClass)) {
+    const className = (singletonClass as any).name;
     throw new Error(`Cannot get instance from ${className}. Make sure that ${className} has @Bean as class decorator`);
   }
-  throw new Error('Please specify the type of Bean. Example: @InjectBean(BeanClass)');
+
+  const bean = singletonClass as unknown as ExpressBean;
+  return bean._instance;
 }
 
 /**
@@ -20,10 +32,11 @@ function getSingleton<T>(singletonClass: T & ExpressBean): T & ExpressBean {
  * @decorator
  * @param singletonClass
  */
-export function InjectBean<T>(singletonClass: T) {
-  return (_value: any, context: ClassFieldDecoratorContext) => () => {
-    const singletonInstance = getSingleton(singletonClass as ExpressBean);
-    logger.debug(`initializing ${String(context.name)} with instance of bean ${singletonInstance._className}`);
-    return singletonInstance;
+export function InjectBean<T>(singletonClass: NonNullable<T>) {
+  return (_value: unknown, context: ClassFieldDecoratorContext) => () => {
+    const singletonInstance = getSingleton(singletonClass);
+    const className = (singletonInstance as unknown as ExpressBean)._className;
+    logger.debug(`initializing ${String(context.name)} with instance of bean ${className}`);
+    return singletonInstance as any;
   };
 }

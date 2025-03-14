@@ -32,6 +32,8 @@ describe('Bean.ts', () => {
     // THEN
     expect(registeredBeans.get('Class')).toBe(C._instance);
     expect(C._instance.id).toStrictEqual(42);
+    expect(C._beanUUID).toBeDefined();
+    expect(C._className).toBe('Class');
   });
 
   it('registers a bean and its methods', async () => {
@@ -51,5 +53,7 @@ describe('Bean.ts', () => {
     // THEN
     expect(registeredBeans.get('Class')).toBe(C._instance);
     expect(registeredMethods.get(C._instance.getId)).toBe(C._instance);
+    expect(C._beanUUID).toBeDefined();
+    expect(C._className).toBe('Class');
   });
 });
