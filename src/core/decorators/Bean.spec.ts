@@ -30,8 +30,8 @@ describe('Bean.ts', () => {
     await flushPromises();
 
     // THEN
-    expect(registeredBeans.get('Class')).toBe(C.instance);
-    expect(C.instance.id).toStrictEqual(42);
+    expect(registeredBeans.get('Class')).toBe(C._instance);
+    expect(C._instance.id).toStrictEqual(42);
   });
 
   it('registers a bean and its methods', async () => {
@@ -49,7 +49,7 @@ describe('Bean.ts', () => {
     await flushPromises();
 
     // THEN
-    expect(registeredBeans.get('Class')).toBe(C.instance);
-    expect(registeredMethods.get(C.instance.getId)).toBe(C.instance);
+    expect(registeredBeans.get('Class')).toBe(C._instance);
+    expect(registeredMethods.get(C._instance.getId)).toBe(C._instance);
   });
 });

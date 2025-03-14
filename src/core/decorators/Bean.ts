@@ -8,11 +8,11 @@ import { registeredMethods, logger, registeredBeans } from '@/core';
  */
 export function Bean(target: any, _context: ClassDecoratorContext) {
   logger.debug(`Registering singleton: ${target.name}`);
-  Reflect.defineProperty(target, 'instance', {
+  Reflect.defineProperty(target, '_instance', {
     get: () => registeredBeans.get(target.name),
   });
-  Reflect.defineProperty(target, 'isExpressBean', {
-    get: () => true,
+  Reflect.defineProperty(target, '_beanUUID', {
+    get: () => crypto.randomUUID(),
   });
 
   const singleton: any = Reflect.construct(target, []);
@@ -22,6 +22,6 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
       logger.debug(`registering method ${target.name}.${String(classMethod)}`);
       registeredMethods.set(singleton[classMethod], singleton);
     });
-  singleton.className = target.name;
+  singleton._className = target.name;
   registeredBeans.set(target.name, singleton);
 }
