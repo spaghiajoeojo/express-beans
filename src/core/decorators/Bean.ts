@@ -8,6 +8,9 @@ import { registeredMethods, logger, registeredBeans } from '@/core';
  */
 export function Bean(target: any, _context: ClassDecoratorContext) {
   logger.debug(`Registering singleton: ${target.name}`);
+  Reflect.defineProperty(target, '_className', {
+    get: () => target.name,
+  });
   Reflect.defineProperty(target, '_instance', {
     get: () => registeredBeans.get(target.name),
   });
@@ -22,6 +25,8 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
       logger.debug(`registering method ${target.name}.${String(classMethod)}`);
       registeredMethods.set(singleton[classMethod], singleton);
     });
-  singleton._className = target.name;
+  Reflect.defineProperty(singleton, '_className', {
+    get: () => target.name,
+  });
   registeredBeans.set(target.name, singleton);
 }
