@@ -3,7 +3,6 @@
 </p>
 
 ![GitHub](https://img.shields.io/github/license/spaghiajoeojo/express-beans)
-![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/spaghiajoeojo/express-beans)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/?branch=main)
 ![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/spaghiajoeojo/express-beans/express)
 ![GitHub package.json dependency version (dev)](https://img.shields.io/github/package-json/dependency-version/spaghiajoeojo/express-beans/dev/typescript)

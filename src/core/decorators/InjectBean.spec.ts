@@ -18,7 +18,9 @@ describe('InjectBean.ts', () => {
     // GIVEN
     class TypeA {}
     const T: any = TypeA;
+    T._beanUUID = crypto.randomUUID();
     T._instance = new TypeA();
+    T._className = TypeA.name;
 
     // WHEN
     class Class {
@@ -40,11 +42,15 @@ describe('InjectBean.ts', () => {
     // GIVEN
     class TypeA {}
     const TA: any = TypeA;
+    TA._beanUUID = crypto.randomUUID();
     TA._instance = new TypeA();
+    TA._className = TypeA.name;
 
     class TypeB {}
     const TB: any = TypeB;
+    TB._beanUUID = crypto.randomUUID();
     TB._instance = new TypeB();
+    TB._className = TypeB.name;
 
     // WHEN
     class Class {
@@ -91,7 +97,7 @@ describe('InjectBean.ts', () => {
     // WHEN
     expect(() => {
       class Class {
-        @InjectBean(null)
+        @InjectBean(null as any)
           dep: TypeA;
       }
       instance = new Class();
@@ -134,7 +140,7 @@ describe('InjectBean.ts', () => {
           dep: TypeA;
       }
       instance = new Class();
-    }).toThrow(new Error('Cannot get instance for a class without name: {"key":"value"}'));
+    }).toThrow(new Error('Cannot get instance for {"key":"value"}: it is not an ExpressBean'));
     expect(instance).toBe(undefined);
   });
 });
