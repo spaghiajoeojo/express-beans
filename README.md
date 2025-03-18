@@ -62,10 +62,11 @@ New decorators are here and ExpressBeans implements some simple decorators to ac
 ```ts
 import { Request, Response } from 'express';
 import { InjectBean, Route, RouterBean } from 'express-beans';
-import ExampleService from '../services/ExampleService';
+import { ExampleService } from '../services/ExampleService';
 
 @RouterBean('/example')
-export default class ExampleRouter {
+export class ExampleRouter {
+
   @InjectBean(ExampleService)
   private exampleService: ExampleService;
 
@@ -81,7 +82,8 @@ This will create a new router that expose an endpoint `GET /example/hello` and
 import { Bean } from 'express-beans';
 
 @Bean
-export default class ExampleService {
+export class ExampleService {
+
   private msg: string;
 
   constructor() {

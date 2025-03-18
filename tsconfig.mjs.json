@@ -3,7 +3,7 @@
     "target": "ES2023",
     "allowJs": true,
     "useDefineForClassFields": true,
-    "module": "ES6",
+    "module": "Preserve",
     "lib": [
       "ESNext"
     ],
@@ -21,8 +21,8 @@
     "noFallthroughCasesInSwitch": true,
     "declaration": true,
     "sourceMap": true,
-    "outDir": "dist",
-    "declarationDir": "dist",
+    "outDir": "dist/mjs",
+    "declarationDir": "dist/types",
     "paths": {
       "@/*": [
         "./src/*"
@@ -41,5 +41,9 @@
   "exclude": [
     "node_modules",
     "**/*.spec.ts",
-  ]
+  ],
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "verbose": false
+  }
 }
