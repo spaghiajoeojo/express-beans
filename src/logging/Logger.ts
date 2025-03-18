@@ -10,10 +10,15 @@ export default function createLogger(scope?: string) {
       singleLine: true,
     }),
   );
-  if (process.env.NODE_ENV !== 'production') {
-    logger.level = 'debug';
-  } else {
+  switch (process.env.NODE_ENV) {
+  case 'production':
     logger.level = 'info';
+    break;
+  case 'test':
+    logger.level = 'silent';
+    break;
+  default:
+    logger.level = 'debug';
   }
   return logger;
 }

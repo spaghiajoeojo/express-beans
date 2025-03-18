@@ -18,12 +18,14 @@ describe('InjectBean.ts', () => {
     // GIVEN
     class TypeA {}
     const T: any = TypeA;
-    T.instance = new TypeA();
+    T._beanUUID = crypto.randomUUID();
+    T._instance = new TypeA();
+    T._className = TypeA.name;
 
     // WHEN
     class Class {
       @InjectBean(TypeA)
-      private dep!: TypeA;
+      private dep: TypeA;
 
       getDep() {
         return this.dep;
@@ -33,26 +35,30 @@ describe('InjectBean.ts', () => {
     await flushPromises();
 
     // THEN
-    expect(instance.getDep()).toBe(T.instance);
+    expect(instance.getDep()).toBe(T._instance);
   });
 
   it('injects multiple dependencies', async () => {
     // GIVEN
     class TypeA {}
     const TA: any = TypeA;
-    TA.instance = new TypeA();
+    TA._beanUUID = crypto.randomUUID();
+    TA._instance = new TypeA();
+    TA._className = TypeA.name;
 
     class TypeB {}
     const TB: any = TypeB;
-    TB.instance = new TypeB();
+    TB._beanUUID = crypto.randomUUID();
+    TB._instance = new TypeB();
+    TB._className = TypeB.name;
 
     // WHEN
     class Class {
       @InjectBean(TypeA)
-        dep1!: TypeA;
+        dep1: TypeA;
 
       @InjectBean(TypeB)
-        dep2!: TypeB;
+        dep2: TypeB;
 
       getDeps() {
         return [this.dep1, this.dep2];
@@ -63,8 +69,8 @@ describe('InjectBean.ts', () => {
 
     // THEN
     const [dep1, dep2] = instance.getDeps();
-    expect(dep1).toBe(TA.instance);
-    expect(dep2).toBe(TB.instance);
+    expect(dep1).toBe(TA._instance);
+    expect(dep2).toBe(TB._instance);
   });
 
   it('throws an error if trying to inject a non injectable dependency', async () => {
@@ -76,7 +82,7 @@ describe('InjectBean.ts', () => {
     expect(() => {
       class Class {
         @InjectBean(TypeA)
-          dep!: TypeA;
+          dep: TypeA;
       }
       instance = new Class();
     }).toThrow(new Error('Cannot get instance from TypeA. Make sure that TypeA has @Bean as class decorator'));
@@ -91,8 +97,8 @@ describe('InjectBean.ts', () => {
     // WHEN
     expect(() => {
       class Class {
-        @InjectBean(null)
-          dep!: TypeA;
+        @InjectBean(null as any)
+          dep: TypeA;
       }
       instance = new Class();
     }).toThrow(new Error('Please specify the type of Bean. Example: @InjectBean(BeanClass)'));
@@ -104,7 +110,7 @@ describe('InjectBean.ts', () => {
     class TypeA {}
     class Class {
       @InjectBean(TypeA)
-        dep!: TypeA;
+        dep: TypeA;
 
       getDep() {
         return this.dep;
@@ -120,5 +126,21 @@ describe('InjectBean.ts', () => {
 
     // THEN
     expect(dep).toBe(undefined);
+  });
+
+  it('throws an error if trying to use decorator improperly', async () => {
+    // GIVEN
+    class TypeA {}
+    let instance;
+
+    // WHEN
+    expect(() => {
+      class Class {
+        @InjectBean({ key: 'value' })
+          dep: TypeA;
+      }
+      instance = new Class();
+    }).toThrow(new Error('Cannot get instance for {"key":"value"}: it is not an ExpressBean'));
+    expect(instance).toBe(undefined);
   });
 });

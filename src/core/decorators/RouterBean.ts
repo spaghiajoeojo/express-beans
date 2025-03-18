@@ -10,7 +10,7 @@ export function RouterBean(path: string) {
   return (target: any, context: any) => {
     Bean(target, context);
     const router = express.Router();
-    Reflect.defineProperty(target.instance, 'routerConfig', {
+    Reflect.defineProperty(target._instance, '_routerConfig', {
       get: () => ({ path, router }),
     });
   };

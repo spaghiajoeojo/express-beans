@@ -3,7 +3,6 @@
 </p>
 
 ![GitHub](https://img.shields.io/github/license/spaghiajoeojo/express-beans)
-![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/spaghiajoeojo/express-beans)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/?branch=main)
 ![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/spaghiajoeojo/express-beans/express)
 ![GitHub package.json dependency version (dev)](https://img.shields.io/github/package-json/dependency-version/spaghiajoeojo/express-beans/dev/typescript)
@@ -63,12 +62,13 @@ New decorators are here and ExpressBeans implements some simple decorators to ac
 ```ts
 import { Request, Response } from 'express';
 import { InjectBean, Route, RouterBean } from 'express-beans';
-import ExampleService from '../services/ExampleService';
+import { ExampleService } from '../services/ExampleService';
 
 @RouterBean('/example')
-export default class ExampleRouter {
+export class ExampleRouter {
+
   @InjectBean(ExampleService)
-  private exampleService!: ExampleService;
+  private exampleService: ExampleService;
 
   @Route('GET', '/hello')
   getHello(_req: Request, res: Response) {
@@ -82,7 +82,8 @@ This will create a new router that expose an endpoint `GET /example/hello` and
 import { Bean } from 'express-beans';
 
 @Bean
-export default class ExampleService {
+export class ExampleService {
+
   private msg: string;
 
   constructor() {

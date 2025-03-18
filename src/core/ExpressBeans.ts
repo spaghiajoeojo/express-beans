@@ -109,25 +109,25 @@ export default class ExpressBeans {
   private registerRouters() {
     Array.from(registeredBeans.values())
       .map((bean) => bean as ExpressRouterBean)
-      .filter((bean) => bean.routerConfig)
+      .filter((bean) => bean._routerConfig)
       .forEach((bean) => {
         try {
           const {
             path,
             router,
-          } = bean.routerConfig;
-          logger.debug(`Registering router ${bean.className}`);
+          } = bean._routerConfig;
+          logger.debug(`Registering router ${bean._className}`);
           this.app.use(path, router);
         } catch (e) {
           logger.error(e);
-          throw new Error(`Router ${bean.className} not initialized correctly`);
+          throw new Error(`Router ${bean._className} not initialized correctly`);
         }
       });
   }
 
   private checkRouterBeans(routerBeans: Array<ExpressRouterBean>) {
     const invalidBeans = routerBeans
-      .filter(((bean) => !bean.isExpressBean))
+      .filter(((bean) => !bean._beanUUID))
       .map((object: any) => object.prototype.constructor.name);
     if (invalidBeans.length > 0) {
       throw new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`);

@@ -44,7 +44,7 @@ describe('Route.ts', () => {
     }
     const bean: any = new Class();
     registeredMethods.set(bean.getNum, bean);
-    bean.routerConfig = {
+    bean._routerConfig = {
       path: '/router',
       router: {
         [method.toLowerCase()]: mock,
@@ -83,7 +83,7 @@ describe('Route.ts', () => {
     }
     const bean: any = new Class();
     registeredMethods.set(bean.getNum, bean);
-    bean.routerConfig = {
+    bean._routerConfig = {
       path: '/router',
       router: {
         [method.toLowerCase()]: mock,
