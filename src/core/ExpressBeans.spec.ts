@@ -170,8 +170,14 @@ describe('ExpressBeans.ts', () => {
     const bean2 = class Bean2 {};
     const bean3 = class Bean3 {};
     const beans = [bean1, bean2, bean3] as unknown as ExpressBean[];
-    beans.forEach((bean: any) => {
-      bean._beanUUID = crypto.randomUUID();
+    beans.forEach((Bean: any) => {
+      Bean._beanUUID = crypto.randomUUID();
+      Bean._className = Bean.name;
+      Bean._instance = new Bean();
+      Bean._instance._routerConfig = {
+        path: '/router',
+        router: jest.mocked(express.Router),
+      };
     });
 
     // WHEN
@@ -217,6 +223,7 @@ describe('ExpressBeans.ts', () => {
     beans.forEach((Bean: any, index) => {
       Bean._beanUUID = crypto.randomUUID();
       const bean = new Bean();
+      Bean._instance = bean;
       bean._routerConfig = {
         path: `router-path/${index}`,
         router: { id: index },
@@ -250,6 +257,7 @@ describe('ExpressBeans.ts', () => {
       Bean._beanUUID = crypto.randomUUID();
       Bean._className = `Bean${index + 1}`;
       const bean = new Bean();
+      Bean._instance = bean;
       bean._className = `Bean${index + 1}`;
       bean._routerConfig = {
         path: `router-path/${index}`,
@@ -285,6 +293,7 @@ describe('ExpressBeans.ts', () => {
       Bean._beanUUID = crypto.randomUUID();
       Bean._className = `Bean${index + 1}`;
       const bean = new Bean();
+      Bean._instance = bean;
       bean._className = `Bean${index + 1}`;
       bean._routerConfig = {
         path: `router-path/${index}`,

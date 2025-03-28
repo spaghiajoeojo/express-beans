@@ -2,7 +2,7 @@ import express, { Express, Request } from 'express';
 import { pinoHttp, startTime } from 'pino-http';
 import { ServerResponse, IncomingMessage } from 'http';
 import { CreateExpressBeansOptions, ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
-import { logger, registeredBeans } from '@/core';
+import { logger } from '@/core';
 
 export default class ExpressBeans {
   private readonly app: Express;
@@ -75,10 +75,10 @@ export default class ExpressBeans {
     onError,
   }: Partial<ExpressBeansOptions>) {
     this.onInitialized = onInitialized;
-    this.checkRouterBeans(routerBeans);
+    const routers = this.checkRouterBeans(routerBeans);
     setImmediate(() => {
       try {
-        this.registerRouters();
+        this.registerRouters(routers);
         if (listen) {
           this.listen(port);
         }
@@ -106,32 +106,32 @@ export default class ExpressBeans {
     });
   }
 
-  private registerRouters() {
-    Array.from(registeredBeans.values())
-      .map((bean) => bean as ExpressRouterBean)
-      .filter((bean) => bean._routerConfig)
-      .forEach((bean) => {
+  private registerRouters(routers: Array<ExpressRouterBean>) {
+    Array.from(routers)
+      .map((bean) => bean._instance)
+      .forEach((instance) => {
         try {
           const {
             path,
             router,
-          } = bean._routerConfig;
-          logger.debug(`Registering router ${bean._className}`);
+          } = instance._routerConfig;
+          logger.debug(`Registering router ${instance._className}`);
           this.app.use(path, router);
         } catch (e) {
           logger.error(e);
-          throw new Error(`Router ${bean._className} not initialized correctly`);
+          throw new Error(`Router ${instance._className} not initialized correctly`);
         }
       });
   }
 
-  private checkRouterBeans(routerBeans: Array<ExpressRouterBean>) {
+  private checkRouterBeans(routerBeans: Array<ExpressRouterBean>): Array<ExpressRouterBean> {
     const invalidBeans = routerBeans
       .filter(((bean) => !bean._beanUUID))
       .map((object: any) => object.prototype.constructor.name);
     if (invalidBeans.length > 0) {
       throw new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`);
     }
+    return routerBeans;
   }
 
   /**
