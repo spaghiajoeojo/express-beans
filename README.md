@@ -100,3 +100,13 @@ export class ExampleService {
 ```console
 npm install express-beans
 ```
+ 
+## Beans Lifecycle
+
+The lifecycle of the beans is the following:
+
+- `@Setup` (optional)
+- `@PreDestroy` (optional)
+
+## License
+[MIT](https://github.com/spaghiajoeojo/express-beans/blob/main/LICENSE.md)

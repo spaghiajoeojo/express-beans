@@ -2,7 +2,7 @@ import {
   NextFunction, Request, RequestHandler, Response,
 } from 'express';
 import { ExpressRouterBean, HTTPMethod } from '@/ExpressBeansTypes';
-import { logger, registeredMethods } from '@/core';
+import { logger, registeredMethods, setExecution } from '@/core';
 import { RouterMethods } from '@/core/RouterMethods';
 
 // Return type here should be "void | Promise<void>" but it is not possible to do it.
@@ -27,7 +27,7 @@ export function Route<This>(
     method: RouterBeanHandler,
     context: ClassMethodDecoratorContext<This, RouterBeanHandler>,
   ) => {
-    setImmediate(() => {
+    setExecution('decorate', () => {
       const bean = registeredMethods.get(method) as ExpressRouterBean;
       if (bean._routerConfig) {
         const { _routerConfig } = bean;
