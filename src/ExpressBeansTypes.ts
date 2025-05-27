@@ -14,13 +14,10 @@ export interface ExpressBeansOptions {
   listen: boolean,
   port: number,
   routerBeans: Array<any>,
-  onInitialized?: () => void,
-  onError?: (err: Error) => void,
-}
-
-export interface CreateExpressBeansOptions {
-  port: number,
-  routerBeans: Array<any>,
+  onInitialized?: () => Promise<void> | void,
+  onError?: (err: Error) => Promise<void> | void,
+  logRequests?: boolean,
+  baseURL?: string
 }
 
 export declare type HTTPMethod =

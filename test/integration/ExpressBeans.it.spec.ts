@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import ExpressBeans from '@/core/ExpressBeans';
 import { Logger, Route, RouterBean } from '@/main';
-import { logger } from '@/core';
+import { executionPhase, logger, stopLifecycle } from '@/core';
 
 jest.mock('pino-http', () => ({
   pinoHttp: ({
@@ -28,6 +28,10 @@ jest.mock('pino-http', () => ({
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
   registeredMethods: new Map(),
+  setExecution: jest.requireActual('@/core').setExecution,
+  startLifecycle: jest.requireActual('@/core').startLifecycle,
+  executionPhase: jest.requireActual('@/core').executionPhase,
+  stopLifecycle: jest.requireActual('@/core').stopLifecycle,
   logger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -43,6 +47,7 @@ describe('ExpressBeans integration tests', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
+    stopLifecycle();
   });
 
   afterEach(() => {
@@ -105,6 +110,8 @@ describe('ExpressBeans integration tests', () => {
     server = application.listen(4001);
     server2 = application2.listen(4002);
     await flushPromises();
+    await executionPhase('init');
+    await flushPromises();
 
     // WHEN
     const { text } = await request(server).get('/test1/42').expect(200);
@@ -129,6 +136,7 @@ describe('ExpressBeans integration tests', () => {
     }
     application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
     await flushPromises();
+    await executionPhase('init');
     server = application.listen(3001);
     await flushPromises();
 
@@ -152,6 +160,7 @@ describe('ExpressBeans integration tests', () => {
     application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
     await flushPromises();
     server = application.listen(3001);
+    await executionPhase('init');
     await flushPromises();
 
     // WHEN

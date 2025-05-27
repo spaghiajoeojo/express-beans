@@ -1,26 +1,22 @@
-import express, { Express, Request } from 'express';
+import express, { Express, Request, Router } from 'express';
 import { pinoHttp, startTime } from 'pino-http';
 import { ServerResponse, IncomingMessage } from 'http';
-import { CreateExpressBeansOptions, ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
-import { logger } from '@/core';
+import EventEmitter from 'events';
+import { ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
+import { logger, setExecution, startLifecycle } from '@/core';
 
-export default class ExpressBeans {
+export default class ExpressBeans extends EventEmitter {
   private readonly app: Express;
 
-  private onInitialized: (() => void) | undefined;
+  private readonly router: Router;
 
   /**
    * Creates a new ExpressBeans application
    * @param options {ExpressBeansOptions}
    */
-  static createApp(options?: Partial<CreateExpressBeansOptions>): Promise<ExpressBeans> {
-    return new Promise((resolve, reject) => {
-      let app: ExpressBeans;
-      const onInitialized = () => {
-        resolve(app);
-      };
-      app = new ExpressBeans({ ...options, onInitialized, onError: reject });
-    });
+  static async createApp(options?: Partial<ExpressBeansOptions>): Promise<ExpressBeans> {
+    const app = new ExpressBeans({ ...options });
+    return app;
   }
 
   /**
@@ -29,16 +25,22 @@ export default class ExpressBeans {
    * @param options {ExpressBeansOptions}
    */
   constructor(options?: Partial<ExpressBeansOptions>) {
+    super();
+    this.router = express.Router();
     this.app = express();
     this.app.disable('x-powered-by');
-    this.app.use(pinoHttp(
-      {
-        logger,
-        customSuccessMessage: this.serializeRequest.bind(this),
-        customErrorMessage: this.serializeRequest.bind(this),
-      },
-    ));
-    this.initialize(options ?? {});
+    this.app.use(options?.baseURL ?? '/', this.router);
+    if (options?.logRequests === undefined || options.logRequests) {
+      this.router.use(pinoHttp(
+        {
+          logger,
+          customSuccessMessage: this.serializeRequest.bind(this),
+          customErrorMessage: this.serializeRequest.bind(this),
+        },
+      ));
+    }
+    setExecution('init', () => this.initialize(options ?? {}));
+    startLifecycle();
   }
 
   private serializeRequest(req: IncomingMessage, res: ServerResponse) {
@@ -67,45 +69,65 @@ export default class ExpressBeans {
    * @param onInitialized {Function}
    * @private
    */
-  private initialize({
+  private async initialize({
     listen = true,
     port = 8080,
     routerBeans = [],
     onInitialized,
     onError,
   }: Partial<ExpressBeansOptions>) {
-    this.onInitialized = onInitialized;
-    const routers = this.checkRouterBeans(routerBeans);
-    setImmediate(() => {
-      try {
-        this.registerRouters(routers);
+    if (onInitialized) {
+      this.on('initialized', onInitialized);
+    }
+    if (onError) {
+      this.on('error', onError);
+    }
+    return Promise.resolve(routerBeans as Array<ExpressRouterBean>)
+      .then(this.checkRouterBeans.bind(this))
+      .then(this.registerRouters.bind(this))
+      .then(() => {
         if (listen) {
-          this.listen(port);
+          try {
+            this.listen(port);
+          } catch (err) {
+            if (onError) {
+              this.emit('error', err);
+            } else {
+              logger.error(new Error('Critical error', { cause: err }));
+              process.exit(1);
+            }
+          }
         }
-      } catch (err: any) {
+      })
+      .catch((err) => {
         if (onError) {
-          onError(err);
+          this.emit('error', err);
         } else {
           logger.error(new Error('Critical error', { cause: err }));
           process.exit(1);
         }
+      });
+  }
+
+  /**
+   * Starts the server and emits the initialized event
+   * @param {number} port
+   */
+  listen(port: number) {
+    return this.app.listen(port, (error) => {
+      if (error) {
+        throw error;
       }
+      logger.info(`Server listening on port ${port}`);
+      this.emit('initialized');
     });
   }
 
   /**
-   * Starts the server and calls onInitialized callback
-   * @param {number} port
+   * Registers all routers
+   * @param routers {Array<ExpressRouterBean>}
+   * @private
    */
-  listen(port: number) {
-    return this.app.listen(port, () => {
-      logger.info(`Server listening on port ${port}`);
-      if (this.onInitialized) {
-        this.onInitialized();
-      }
-    });
-  }
-
   private registerRouters(routers: Array<ExpressRouterBean>) {
     Array.from(routers)
       .map((bean) => bean._instance)
@@ -116,7 +138,7 @@ export default class ExpressBeans {
             router,
           } = instance._routerConfig;
           logger.debug(`Registering router ${instance._className}`);
-          this.app.use(path, router);
+          this.router.use(path, router);
         } catch (e) {
           logger.error(e);
           throw new Error(`Router ${instance._className} not initialized correctly`);
@@ -124,7 +146,15 @@ export default class ExpressBeans {
       });
   }
 
-  private checkRouterBeans(routerBeans: Array<ExpressRouterBean>): Array<ExpressRouterBean> {
+  /**
+   * Checks if all beans are valid
+   * @param routerBeans {Array<ExpressRouterBean>}
+   * @returns {Array<ExpressRouterBean>}
+   * @throws {Error}
+   * @private
+   */
+  private async checkRouterBeans(routerBeans: Array<ExpressRouterBean>):
+  Promise<ExpressRouterBean[]> {
     const invalidBeans = routerBeans
       .filter(((bean) => !bean._beanUUID))
       .map((object: any) => object.prototype.constructor.name);
