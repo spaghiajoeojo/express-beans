@@ -3,7 +3,8 @@ import { pinoHttp, startTime } from 'pino-http';
 import { ServerResponse, IncomingMessage } from 'http';
 import EventEmitter from 'events';
 import { ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
-import { logger, setExecution, startLifecycle } from '@/core';
+import { logger } from '@/core';
+import { Executor } from '@/core/Executor';
 
 export default class ExpressBeans extends EventEmitter {
   private readonly app: Express;
@@ -39,8 +40,8 @@ export default class ExpressBeans extends EventEmitter {
         },
       ));
     }
-    setExecution('init', () => this.initialize(options ?? {}));
-    startLifecycle();
+    Executor.setExecution('init', () => this.initialize(options ?? {}));
+    Executor.startLifecycle();
   }
 
   private serializeRequest(req: IncomingMessage, res: ServerResponse) {
@@ -95,16 +96,9 @@ export default class ExpressBeans extends EventEmitter {
             } else {
               logger.error(new Error('Critical error', { cause: err }));
               process.exit(1);
+              throw err;
             }
           }
-        }
-      })
-      .catch((err) => {
-        if (onError) {
-          this.emit('error', err);
-        } else {
-          logger.error(new Error('Critical error', { cause: err }));
-          process.exit(1);
         }
       });
   }

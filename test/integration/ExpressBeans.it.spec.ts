@@ -4,7 +4,8 @@ import { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import ExpressBeans from '@/core/ExpressBeans';
 import { Logger, Route, RouterBean } from '@/main';
-import { executionPhase, logger, stopLifecycle } from '@/core';
+import { logger } from '@/core';
+import { Executor } from '@/core/Executor';
 
 jest.mock('pino-http', () => ({
   pinoHttp: ({
@@ -28,10 +29,6 @@ jest.mock('pino-http', () => ({
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
   registeredMethods: new Map(),
-  setExecution: jest.requireActual('@/core').setExecution,
-  startLifecycle: jest.requireActual('@/core').startLifecycle,
-  executionPhase: jest.requireActual('@/core').executionPhase,
-  stopLifecycle: jest.requireActual('@/core').stopLifecycle,
   logger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -47,7 +44,7 @@ describe('ExpressBeans integration tests', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
-    stopLifecycle();
+    Executor.stopLifecycle();
   });
 
   afterEach(() => {
@@ -110,7 +107,7 @@ describe('ExpressBeans integration tests', () => {
     server = application.listen(4001);
     server2 = application2.listen(4002);
     await flushPromises();
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
     await flushPromises();
 
     // WHEN
@@ -136,7 +133,7 @@ describe('ExpressBeans integration tests', () => {
     }
     application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
     await flushPromises();
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
     server = application.listen(3001);
     await flushPromises();
 
@@ -160,7 +157,7 @@ describe('ExpressBeans integration tests', () => {
     application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
     await flushPromises();
     server = application.listen(3001);
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
     await flushPromises();
 
     // WHEN

@@ -3,19 +3,16 @@ import { flushPromises } from '@test/utils/testUtils';
 import { pinoHttp } from 'pino-http';
 import ExpressBeans from '@/core/ExpressBeans';
 import {
-  executionPhase, logger, registeredBeans, stopLifecycle,
+  logger, registeredBeans,
 } from '@/core';
 import { ExpressBean } from '@/ExpressBeansTypes';
+import { Executor } from './Executor';
 
 jest.mock('express');
 jest.mock('pino-http');
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
   registeredMethods: new Map(),
-  executionPhase: jest.requireActual('@/core').executionPhase,
-  stopLifecycle: jest.requireActual('@/core').stopLifecycle,
-  startLifecycle: jest.requireActual('@/core').startLifecycle,
-  setExecution: jest.requireActual('@/core').setExecution,
   logger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -44,7 +41,7 @@ describe('ExpressBeans.ts', () => {
     );
     registeredBeans.clear();
     jest.spyOn(global, 'setImmediate').mockImplementation((cb) => realSetImmediate(cb));
-    stopLifecycle();
+    Executor.stopLifecycle();
     await flushPromises();
   });
 
@@ -56,7 +53,7 @@ describe('ExpressBeans.ts', () => {
 
     // WHEN
     await flushPromises();
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
@@ -73,7 +70,7 @@ describe('ExpressBeans.ts', () => {
 
     // WHEN
     await flushPromises();
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
@@ -118,7 +115,7 @@ describe('ExpressBeans.ts', () => {
     // WHEN
     ExpressBeans.createApp({ onInitialized, onError });
     await flushPromises();
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
     await flushPromises();
 
     // THEN
@@ -138,7 +135,7 @@ describe('ExpressBeans.ts', () => {
     // WHEN
     await ExpressBeans.createApp({ onError });
     await flushPromises();
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
 
     // THEN
     expect(onError).toHaveBeenCalledWith(error);
@@ -157,10 +154,15 @@ describe('ExpressBeans.ts', () => {
     });
 
     // WHEN
-    await ExpressBeans.createApp();
-    await flushPromises();
-    await executionPhase('init');
+    try {
+      await ExpressBeans.createApp();
+      await flushPromises();
+    } catch (e) {
+      expect(e).toEqual(error);
+    }
 
+    // THEN
+    await expect(Executor.execution).rejects.toThrow(error);
     expect(mockExit).toHaveBeenCalledWith(1);
     mockExit.mockRestore();
   });
@@ -182,7 +184,7 @@ describe('ExpressBeans.ts', () => {
     // WHEN
     await ExpressBeans.createApp({ onInitialized });
     await flushPromises();
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
 
     // THEN
     expect(mockExit).toHaveBeenCalledWith(1);
@@ -225,18 +227,18 @@ describe('ExpressBeans.ts', () => {
     const beans = [bean1, bean2, notABean];
     const error = new Error('Trying to use something that is not an ExpressBean: NotABean');
 
-    // WHEN
-    ExpressBeans.createApp({
-      routerBeans: beans,
-      onError: (err) => {
-        expect(err).toEqual(error);
-      },
-    });
-    await flushPromises();
-    await executionPhase('init');
-    await flushPromises();
+    try {
+      // WHEN
+      await ExpressBeans.createApp({ routerBeans: beans });
+      await flushPromises();
+      await Executor.execution;
+      await flushPromises();
+    } catch (e) {
+      expect(e).toEqual(error);
+    }
 
     // THEN
+    // expect(mockExit).toHaveBeenCalledWith(1);
     expect.assertions(1);
   });
 
@@ -267,7 +269,7 @@ describe('ExpressBeans.ts', () => {
       logRequests: false,
     });
     await flushPromises();
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
@@ -308,15 +310,11 @@ describe('ExpressBeans.ts', () => {
         throw error;
       });
 
-    try {
-      // WHEN
-      await ExpressBeans.createApp({ routerBeans: beans, logRequests: false });
-      await flushPromises();
-      await executionPhase('init');
-    } catch (e) {
-      // THEN
-      expect(e).toStrictEqual(new Error('Router Bean3 not initialized correctly'));
-    }
+    // WHEN
+    await ExpressBeans.createApp({ routerBeans: beans, logRequests: false });
+    await flushPromises();
+    // THEN
+    await expect(await Executor.execution).rejects.toThrow(error); // Executor.execution;
 
     expect(mockExit).toHaveBeenCalledWith(1);
     mockExit.mockRestore();
@@ -356,7 +354,7 @@ describe('ExpressBeans.ts', () => {
     await ExpressBeans.createApp({ routerBeans: beans, logRequests: false });
     await flushPromises();
     // THEN
-    await executionPhase('init');
+    await Executor.getExecutionPhase('init');
 
     expect(mockExit).toHaveBeenCalledWith(1);
     mockExit.mockRestore();

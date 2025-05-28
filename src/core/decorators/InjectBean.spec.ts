@@ -1,5 +1,7 @@
 import { flushPromises } from '@test/utils/testUtils';
+import { isProxy } from 'util/types';
 import { InjectBean } from '@/core/decorators/InjectBean';
+import { Executor } from '@/core/Executor';
 
 jest.mock('@/core', () => ({
   logger: {
@@ -35,7 +37,9 @@ describe('InjectBean.ts', () => {
     await flushPromises();
 
     // THEN
-    expect(instance.getDep()).toBe(T._instance);
+    expect(isProxy(instance.getDep())).toBe(true);
+    expect((instance.getDep() as any)._beanUUID).toBe(T._beanUUID);
+    expect.assertions(2);
   });
 
   it('injects multiple dependencies', async () => {
@@ -69,13 +73,15 @@ describe('InjectBean.ts', () => {
 
     // THEN
     const [dep1, dep2] = instance.getDeps();
-    expect(dep1).toBe(TA._instance);
-    expect(dep2).toBe(TB._instance);
+    expect((dep1 as any)._beanUUID).toBe(TA._beanUUID);
+    expect((dep2 as any)._beanUUID).toBe(TB._beanUUID);
   });
 
   it('throws an error if trying to inject a non injectable dependency', async () => {
     // GIVEN
-    class TypeA {}
+    class TypeA {
+      prop: string;
+    }
     let instance;
 
     // WHEN
@@ -85,8 +91,8 @@ describe('InjectBean.ts', () => {
           dep: TypeA;
       }
       instance = new Class();
+      expect((instance.dep as any).prop).not.toBeDefined();
     }).toThrow(new Error('Cannot get instance from TypeA. Make sure that TypeA has @Bean as class decorator'));
-    expect(instance).toBe(undefined);
   });
 
   it('throws an error if trying to inject without specify a type', async () => {
@@ -101,13 +107,15 @@ describe('InjectBean.ts', () => {
           dep: TypeA;
       }
       instance = new Class();
+      expect((instance.dep as any).prop).not.toBeDefined();
     }).toThrow(new Error('Please specify the type of Bean. Example: @InjectBean(BeanClass)'));
-    expect(instance).toBe(undefined);
   });
 
   it('throws an error when dependency is not found', async () => {
     // GIVEN
-    class TypeA {}
+    class TypeA {
+      prop: string;
+    }
     class Class {
       @InjectBean(TypeA)
         dep: TypeA;
@@ -119,13 +127,13 @@ describe('InjectBean.ts', () => {
 
     // WHEN
     let dep;
-    expect(() => {
+    await expect(async () => {
       const instance = new Class();
       dep = instance.getDep();
-    }).toThrow(new Error('Cannot get instance from TypeA. Make sure that TypeA has @Bean as class decorator'));
-
-    // THEN
-    expect(dep).toBe(undefined);
+      await Executor.execution;
+      // THEN
+      expect(dep.prop).not.toBeDefined();
+    }).rejects.toThrow(new Error('Cannot get instance from TypeA. Make sure that TypeA has @Bean as class decorator'));
   });
 
   it('throws an error if trying to use decorator improperly', async () => {
@@ -140,7 +148,7 @@ describe('InjectBean.ts', () => {
           dep: TypeA;
       }
       instance = new Class();
+      expect((instance.dep as any).key).not.toBeDefined();
     }).toThrow(new Error('Cannot get instance for {"key":"value"}: it is not an ExpressBean'));
-    expect(instance).toBe(undefined);
   });
 });
