@@ -1,7 +1,7 @@
 import {
   registeredMethods, logger, registeredBeans,
-  executionPhase,
 } from '@/core';
+import { Executor } from '@/core/Executor';
 
 /**
  * Creates a proxy for a class method
@@ -16,7 +16,7 @@ const proxyMethod = (singleton: any, classMethod: PropertyKey): void => {
         logger.debug(`proxying ${instance._className}.${String(actualMethod)}`);
         return async (...args: any[]) => {
           logger.debug(`Executing ${instance._className}.${String(actualMethod)}`);
-          await executionPhase('init');
+          await Executor.getExecutionPhase('init');
           const result = await instance[actualMethod](...args);
           return result;
         };
