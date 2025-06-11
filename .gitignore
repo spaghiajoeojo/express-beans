@@ -15,6 +15,7 @@ dist-ssr
 coverage
 docs
 .npmrc
+.scannerwork
 
 # Editor directories and files
 .vscode/*
