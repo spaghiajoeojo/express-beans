@@ -14,8 +14,6 @@ export interface ExpressBeansOptions {
   listen: boolean,
   port: number,
   routerBeans: Array<any>,
-  onInitialized?: () => Promise<void> | void,
-  onError?: (err: Error) => Promise<void> | void,
   logRequests?: boolean,
   baseURL?: string
 }

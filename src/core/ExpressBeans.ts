@@ -6,7 +6,12 @@ import { ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
 import { logger } from '@/core';
 import { Executor } from '@/core/Executor';
 
-export default class ExpressBeans extends EventEmitter {
+type ExpressBeanEventMap = {
+  error: [Error];
+  initialized: [];
+}
+
+export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
   private readonly app: Express;
 
   private readonly router: Router;
@@ -40,7 +45,10 @@ export default class ExpressBeans extends EventEmitter {
         },
       ));
     }
-    Executor.setExecution('init', () => this.initialize(options ?? {}));
+    Executor.setExecution('init', async () => this.initialize(options ?? {}));
+    Executor.eventEmitter.on('error', () => {
+      process.exit(1);
+    });
     Executor.startLifecycle();
   }
 
@@ -74,32 +82,23 @@ export default class ExpressBeans extends EventEmitter {
     listen = true,
     port = 8080,
     routerBeans = [],
-    onInitialized,
-    onError,
   }: Partial<ExpressBeansOptions>) {
-    if (onInitialized) {
-      this.on('initialized', onInitialized);
-    }
-    if (onError) {
-      this.on('error', onError);
-    }
     return Promise.resolve(routerBeans as Array<ExpressRouterBean>)
       .then(this.checkRouterBeans.bind(this))
       .then(this.registerRouters.bind(this))
       .then(() => {
         if (listen) {
           try {
-            this.listen(port);
+            return new Promise<void>(
+              (resolve, reject) => {
+                this.listen(port, (err) => (err ? reject(err) : resolve()));
+              },
+            );
           } catch (err) {
-            if (onError) {
-              this.emit('error', err);
-            } else {
-              logger.error(new Error('Critical error', { cause: err }));
-              process.exit(1);
-              throw err;
-            }
+            return Promise.reject(err);
           }
         }
+        return Promise.resolve();
       });
   }
 
@@ -107,10 +106,12 @@ export default class ExpressBeans extends EventEmitter {
    * Starts the server and emits the initialized event
    * @param {number} port
    */
-  listen(port: number) {
+  listen(port: number, callback?: (error?: Error) => void) {
     return this.app.listen(port, (error) => {
+      callback?.(error);
       if (error) {
-        throw error;
+        this.emit('error', error);
+        return;
       }
       logger.info(`Server listening on port ${port}`);
       this.emit('initialized');
@@ -122,22 +123,25 @@ export default class ExpressBeans extends EventEmitter {
    * @param routers {Array<ExpressRouterBean>}
    * @private
    */
-  private registerRouters(routers: Array<ExpressRouterBean>) {
-    Array.from(routers)
-      .map((bean) => bean._instance)
-      .forEach((instance) => {
-        try {
-          const {
-            path,
-            router,
-          } = instance._routerConfig;
-          logger.debug(`Registering router ${instance._className}`);
-          this.router.use(path, router);
-        } catch (e) {
-          logger.error(e);
-          throw new Error(`Router ${instance._className} not initialized correctly`);
-        }
-      });
+  private async registerRouters(routers: Array<ExpressRouterBean>) {
+    return new Promise((resolve, reject) => {
+      Array.from(routers)
+        .map((bean) => bean._instance)
+        .forEach((instance) => {
+          try {
+            const {
+              path,
+              router,
+            } = instance._routerConfig;
+            logger.debug(`Registering router ${instance._className}`);
+            this.router.use(path, router);
+          } catch (e) {
+            logger.error(e);
+            reject(new Error(`Router ${instance._className} not initialized correctly`, { cause: e }));
+          }
+        });
+      resolve(true);
+    });
   }
 
   /**
@@ -153,7 +157,7 @@ export default class ExpressBeans extends EventEmitter {
       .filter(((bean) => !bean._beanUUID))
       .map((object: any) => object.prototype.constructor.name);
     if (invalidBeans.length > 0) {
-      throw new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`);
+      return Promise.reject(new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`));
     }
     return routerBeans;
   }
