@@ -1,5 +1,8 @@
 import EventEmitter from 'events';
 import { logger } from '@/core';
+import {
+  isError, Result, wrap,
+} from '@/core/errors';
 
 const phases = {
   0: 'start',
@@ -9,18 +12,25 @@ const phases = {
 } as const;
 export type ExecutorPhase = typeof phases[keyof typeof phases];
 
+type ExecutorEventMap = {
+  [phase in ExecutorPhase]: [Result<void>[]];
+} & {
+  error: [Error];
+  finished: [];
+};
+
 export class Executor {
   static PHASES = phases;
 
   static tasks: Map<ExecutorPhase, Array<() => Promise<void> | void>> = new Map();
 
-  static eventEmitter = new EventEmitter();
+  static eventEmitter = new EventEmitter<ExecutorEventMap>();
 
-  static phasePromises: Map<ExecutorPhase, Promise<void[]>> = new Map();
+  static phasePromises: Map<ExecutorPhase, Promise<Result<void>[]>> = new Map();
 
   static started = false;
 
-  static execution: Promise<void[]> | null = null;
+  static execution: Promise<Result<void>[]> | null = null;
 
   /**
  * Registers a task to be executed in a given phase.
@@ -45,43 +55,48 @@ export class Executor {
  * Tasks are sorted by their phase index and executed concurrently within each phase.
  * Debug logs are generated for each phase indicating the number of tasks being executed.
  */
-  static async execute(): Promise<void[]> {
+  static async execute(): Promise<Result<void, Error>[]> {
     this.started = true;
     return Object.entries(phases)
       .map(([idx, phase]) => [Number(idx), phase] as const)
       .sort(([a], [b]) => a - b)
       .map(([, phase]) => phase)
-      .reduce((previous: { promise: Promise<void[]>, phase: ExecutorPhase }, currentPhase) => ({
+      .reduce((
+        previous: {
+          promise: Promise<Result<void>[]>, phase: ExecutorPhase
+        },
+        currentPhase,
+        currentIndex,
+      ) => ({
         promise: previous.promise.then(
-          () => {
-            this.eventEmitter.emit(previous.phase);
+          async () => {
+            this.eventEmitter.emit(previous.phase, await previous.promise);
             const tasksToExecute = this.tasks.get(currentPhase) ?? [];
             logger.debug(`Executing phase ${currentPhase} with ${tasksToExecute.length} tasks`);
-            const phasePromise = Promise.all(
-              tasksToExecute.map((task) => {
-                let res;
-                try {
-                  res = task();
-                } catch (err) {
-                  return Promise.reject(err);
+            const wrappedTasks = tasksToExecute.map(async (task) => {
+              const result = wrap(task);
+              return Promise.resolve(result);
+            });
+
+            const phasePromise = Promise.all(wrappedTasks)
+              .then((results) => Promise.all(results.map(async (result, index) => {
+                if (isError(result)) {
+                  logger.error(`Task ${index} in phase ${currentPhase} failed`, { cause: result.error });
+                  this.eventEmitter.emit('error', result.error);
                 }
-                if (res instanceof Promise) {
-                  return res;
-                }
-                return Promise.resolve(res);
-              }),
-            );
+                return result;
+              })));
+
             this.phasePromises.set(currentPhase, phasePromise);
+            if (currentIndex === Object.keys(phases).length - 1) {
+              this.eventEmitter.emit(currentPhase, await phasePromise);
+            }
             return phasePromise;
           },
         ),
         phase: currentPhase,
-      }), { promise: Promise.resolve<void[]>([]), phase: 'start' })
-      .promise
-      .catch(((err) => {
-        logger.error(err);
-        throw err;
-      }));
+      }), { promise: Promise.resolve<Result<void, Error>[]>([]), phase: 'start' })
+      .promise;
   }
 
   /**
@@ -90,19 +105,13 @@ export class Executor {
  * If execution is already in progress, the function does nothing.
  * @returns {void}
  */
-  static startLifecycle(): Promise<void[]> {
-    if (this.execution) {
-      return this.execution;
-    }
-    return new Promise((resolve) => {
-      setImmediate(() => {
-        if (this.started) {
-          return;
-        }
-        logger.debug('Starting lifecycle');
-        this.execution = this.execute();
-        this.execution.then(resolve);
-      });
+  static startLifecycle(): void {
+    setImmediate(() => {
+      if (this.started) {
+        return;
+      }
+      logger.debug('Starting lifecycle');
+      this.execution = this.execute();
     });
   }
 
@@ -119,6 +128,7 @@ export class Executor {
     this.started = false;
     this.execution = null;
     this.eventEmitter.removeAllListeners();
+    this.eventEmitter = new EventEmitter<ExecutorEventMap>();
     logger.debug('Lifecycle stopped');
   }
 }
