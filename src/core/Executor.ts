@@ -19,32 +19,32 @@ type ExecutorEventMap = {
   finished: [];
 };
 
-export class Executor {
-  static PHASES = phases;
+class ExecutorImpl {
+  static readonly PHASES = phases;
 
-  static tasks: Map<ExecutorPhase, Array<() => Promise<void> | void>> = new Map();
+  tasks: Map<ExecutorPhase, Array<() => Promise<void> | void>> = new Map();
 
-  static eventEmitter = new EventEmitter<ExecutorEventMap>();
+  eventEmitter = new EventEmitter<ExecutorEventMap>();
 
-  static phasePromises: Map<ExecutorPhase, Promise<Result<void>[]>> = new Map();
+  phasePromises: Map<ExecutorPhase, Promise<Result<void>[]>> = new Map();
 
-  static started = false;
+  started = false;
 
-  static execution: Promise<Result<void>[]> | null = null;
+  execution: Promise<Result<void>[]> | null = null;
 
   /**
  * Registers a task to be executed in a given phase.
  * @param task {() => Promise<void> | void} function to be executed, can return a Promise or void
  * @param phase {ExecutorPhase} phase in which the task should be executed
  */
-  static setExecution(phase: ExecutorPhase, task: () => Promise<void> | void) {
+  setExecution(phase: ExecutorPhase, task: () => Promise<void> | void) {
     if (!this.tasks.has(phase)) {
       this.tasks.set(phase, []);
     }
     this.tasks.get(phase)?.push(task);
   }
 
-  static getExecutionPhase(phase: ExecutorPhase) {
+  getExecutionPhase(phase: ExecutorPhase) {
     return this.phasePromises.get(phase) ?? new Promise((resolve) => {
       this.eventEmitter.once(phase, resolve);
     });
@@ -55,7 +55,7 @@ export class Executor {
  * Tasks are sorted by their phase index and executed concurrently within each phase.
  * Debug logs are generated for each phase indicating the number of tasks being executed.
  */
-  static async execute(): Promise<Result<void, Error>[]> {
+  async execute(): Promise<Result<void, Error>[]> {
     this.started = true;
     return Object.entries(phases)
       .map(([idx, phase]) => [Number(idx), phase] as const)
@@ -78,14 +78,16 @@ export class Executor {
               return Promise.resolve(result);
             });
 
+            const resultMap = async (result: Result<void>, index: number) => {
+              if (isError(result)) {
+                logger.error(`Task ${index} in phase ${currentPhase} failed`, { cause: result.error });
+                this.eventEmitter.emit('error', result.error);
+              }
+              return result;
+            };
+
             const phasePromise = Promise.all(wrappedTasks)
-              .then((results) => Promise.all(results.map(async (result, index) => {
-                if (isError(result)) {
-                  logger.error(`Task ${index} in phase ${currentPhase} failed`, { cause: result.error });
-                  this.eventEmitter.emit('error', result.error);
-                }
-                return result;
-              })));
+              .then((results) => Promise.all(results.map(resultMap)));
 
             this.phasePromises.set(currentPhase, phasePromise);
             if (currentIndex === Object.keys(phases).length - 1) {
@@ -105,7 +107,7 @@ export class Executor {
  * If execution is already in progress, the function does nothing.
  * @returns {void}
  */
-  static startLifecycle(): void {
+  startLifecycle(): void {
     setImmediate(() => {
       if (this.started) {
         return;
@@ -121,7 +123,7 @@ export class Executor {
  * USE ONLY IF YOU KNOW WHAT YOU ARE DOING
  * @returns {void}
  */
-  static stopLifecycle(): void {
+  stopLifecycle(): void {
     logger.debug('Stopping lifecycle');
     this.phasePromises.clear();
     this.tasks.clear();
@@ -132,3 +134,54 @@ export class Executor {
     logger.debug('Lifecycle stopped');
   }
 }
+
+type ExecutorType = typeof ExecutorImpl & ExecutorImpl;
+let instance: ExecutorImpl | null = null;
+
+function getInstance() {
+  if (!instance) {
+    instance = new ExecutorImpl();
+  }
+  return instance;
+}
+
+export const Executor: ExecutorType = new Proxy(ExecutorImpl, {
+  get(target, prop, receiver) {
+    if (prop in target) {
+      return Reflect.get(target, prop, receiver);
+    }
+
+    const inst = getInstance();
+    const value = Reflect.get(inst, prop, inst);
+
+    if (typeof value === 'function') {
+      return value.bind(inst);
+    }
+
+    return value;
+  },
+
+  set(target, prop, value, receiver) {
+    if (prop in target) {
+      return Reflect.set(target, prop, value, receiver);
+    }
+
+    const inst = getInstance();
+    return Reflect.set(inst, prop, value, inst);
+  },
+
+  has(target, prop) {
+    return Reflect.has(target, prop) || Reflect.has(getInstance(), prop);
+  },
+
+  ownKeys(target) {
+    const classKeys = Reflect.ownKeys(target);
+    const instanceKeys = Reflect.ownKeys(getInstance());
+    return [...new Set([...classKeys, ...instanceKeys])];
+  },
+
+  getOwnPropertyDescriptor(target, prop) {
+    return Reflect.getOwnPropertyDescriptor(target, prop)
+           || Reflect.getOwnPropertyDescriptor(getInstance(), prop);
+  },
+}) as ExecutorType;
