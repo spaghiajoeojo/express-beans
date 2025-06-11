@@ -88,15 +88,11 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
       .then(this.registerRouters.bind(this))
       .then(() => {
         if (listen) {
-          try {
-            return new Promise<void>(
-              (resolve, reject) => {
-                this.listen(port, (err) => (err ? reject(err) : resolve()));
-              },
-            );
-          } catch (err) {
-            return Promise.reject(err);
-          }
+          return new Promise<void>(
+            (resolve, reject) => {
+              this.listen(port, (err) => (err ? reject(err) : resolve()));
+            },
+          ).catch((err) => Promise.reject(err));
         }
         return Promise.resolve();
       });
