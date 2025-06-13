@@ -111,6 +111,8 @@ The lifecycle of the beans is the following:
 - `init`: The application is initialized, and tasks registered for this phase are executed.
 
 ## Hooks
+
+### Setup
 You can use the `@Setup` hook to add a function that will be executed right after the application is initialized.
 
 ```ts
@@ -120,6 +122,30 @@ mySetupFunction() {
 }
 ```
 Every request received will be served only after the application is initialized and `@Setup` functions are executed.
+
+### Shutdown
+You can use the `@Shutdown` hook to add a function that will be executed right before the application is shutdown.
+
+```ts
+@Shutdown
+myShutdownFunction() {
+  // do something
+}
+```
+
+## Springboot like annotations
+If you want to use Springboot like annotations you can use the following aliases:
+
+- `@PostConstruct` -> `@Setup`
+- `@PreDestroy` -> `@Shutdown`
+- `@Component` -> `@Bean`
+- `@Service` -> `@Bean`
+- `@Controller` -> `@RouterBean`
+- `@Mapping` -> `@Route`
+- `@Autowired` -> `@InjectBean`
+
+## Contribute
+Pull requests or issues/feature requests are welcome!
 
 
 ## License

@@ -3,7 +3,7 @@ import * as http from 'http';
 import { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import ExpressBeans from '@/core/ExpressBeans';
-import { Logger, Route, RouterBean } from '@/main';
+import { Logger, Shutdown, Route, RouterBean } from '@/main';
 import { logger } from '@/core';
 import { Executor } from '@/core/Executor';
 
@@ -186,5 +186,57 @@ describe('ExpressBeans integration tests', () => {
 
     // THEN
     expect(loggerMock.info).toHaveBeenCalledWith('193.234.61.32 - "GET /test/42 HTTP/1.1" 200 - NaNms');
+  });
+
+  test('Shutdown hooks on process exit', async () => {
+    // GIVEN
+    const mockExit = jest.spyOn(process, 'exit')
+      .mockImplementationOnce((code?: string | number | null) => process.emit('beforeExit', Number(code)) as never);
+    const mock = jest.fn();
+
+
+    @RouterBean('/test')
+    class TestBean {
+
+      @Shutdown
+      exit() {
+        mock();
+      }
+    }
+
+    // WHEN
+    application = new ExpressBeans({ listen: false, routerBeans: [TestBean] });
+    server = application.listen(3001);
+    await flushPromises();
+    await Executor.getExecutionPhase('init');
+    process.exit(0);
+
+    // THEN
+    expect(mock).toHaveBeenCalled();
+    expect(mockExit).toHaveBeenCalledWith(0);
+    mockExit.mockRestore();
+  });
+
+  test('Shutdown hook not called on normal execution', async () => {
+    // GIVEN
+    const mock = jest.fn();
+
+    @RouterBean('/test')
+    class TestBean {
+
+      @Shutdown
+      exit() {
+        mock();
+      }
+    }
+
+    // WHEN
+    application = new ExpressBeans({ listen: false, routerBeans: [TestBean] });
+    server = application.listen(3001);
+    await flushPromises();
+    await Executor.getExecutionPhase('init');
+
+    // THEN
+    expect(mock).not.toHaveBeenCalled();
   });
 });

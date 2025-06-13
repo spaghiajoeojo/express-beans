@@ -71,6 +71,38 @@ describe('Executor.ts', () => {
     ]));
   });
 
+  it('execute exit phase', async () => {
+    // GIVEN
+    const mock = jest.fn();
+    Executor.setExecution('exit', () => mock());
+
+    // WHEN
+    Executor.startLifecycle();
+    await Executor.getExecutionPhase('init');
+    Executor.stopLifecycle();
+
+    // THEN
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  it('executes exit phase on process exit', async () => {
+    // GIVEN
+    const mockExit = jest.spyOn(process, 'exit')
+      .mockImplementationOnce((code?: string | number | null) => process.emit('beforeExit', Number(code)) as never);
+    const mock = jest.fn();
+    Executor.setExecution('exit', () => mock());
+
+    // WHEN
+    Executor.startLifecycle();
+    await Executor.getExecutionPhase('init');
+    process.exit(0);
+
+    // THEN
+    expect(mock).toHaveBeenCalled();
+    expect(mockExit).toHaveBeenCalledWith(0);
+    mockExit.mockRestore();
+  });
+
   it('exposes phases', async () => {
     // THEN
     expect(Executor.PHASES).toEqual({
@@ -78,6 +110,7 @@ describe('Executor.ts', () => {
       1: 'register',
       2: 'routing',
       3: 'init',
+      4: 'exit',
     });
   });
 });

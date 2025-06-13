@@ -9,6 +9,7 @@ const phases = {
   1: 'register',
   2: 'routing',
   3: 'init',
+  4: 'exit',
 } as const;
 export type ExecutorPhase = typeof phases[keyof typeof phases];
 
@@ -62,6 +63,7 @@ class ExecutorImpl {
   async execute(): Promise<Result<void, Error>[]> {
     this.started = true;
     return Object.entries(phases)
+      .filter(([, phase]) => phase !== 'exit')
       .map(([idx, phase]) => [Number(idx), phase] as const)
       .sort(([a], [b]) => a - b)
       .map(([, phase]) => phase)
@@ -70,39 +72,52 @@ class ExecutorImpl {
           promise: Promise<Result<void>[]>, phase: ExecutorPhase
         },
         currentPhase,
-        currentIndex,
       ) => ({
         promise: previous.promise.then(
           async () => {
-            this.eventEmitter.emit(previous.phase, await previous.promise);
-            const tasksToExecute = this.tasks.get(currentPhase) ?? [];
-            logger.debug(`Executing phase ${currentPhase} with ${tasksToExecute.length} tasks`);
-            const wrappedTasks = tasksToExecute.map(async (task) => {
-              const result = wrap(task);
-              return Promise.resolve(result);
-            });
-
-            const resultMap = async (result: Result<void>, index: number) => {
-              if (isError(result)) {
-                logger.error(`Task ${index} in phase ${currentPhase} failed`, { cause: result.error });
-                this.eventEmitter.emit('error', result.error);
-              }
-              return result;
-            };
-
-            const phasePromise = Promise.all(wrappedTasks)
-              .then((results) => Promise.all(results.map(resultMap)));
-
-            this.phasePromises.set(currentPhase, phasePromise);
-            if (currentIndex === Object.keys(phases).length - 1) {
-              this.eventEmitter.emit(currentPhase, await phasePromise);
-            }
-            return phasePromise;
+            await previous.promise;
+            return this.executePhase(currentPhase);
           },
         ),
         phase: currentPhase,
       }), { promise: Promise.resolve<Result<void, Error>[]>([]), phase: 'start' })
       .promise;
+  }
+
+  /**
+   * Executes all tasks in a given phase
+   * @param phase {ExecutorPhase}
+   * @returns {Promise<Result<void>[]>}
+   */
+  private async executePhase(phase: ExecutorPhase) {
+    const tasksToExecute = this.tasks.get(phase) ?? [];
+    logger.debug(`Executing phase ${phase} with ${tasksToExecute.length} tasks`);
+    const wrappedTasks = tasksToExecute.map(async (task) => {
+      const result = wrap(task);
+      return Promise.resolve(result);
+    });
+
+    const resultMap = async (result: Result<void>, index: number) => {
+      if (isError(result)) {
+        logger.error(`Task ${index} in phase ${phase} failed`, { cause: result.error });
+        this.eventEmitter.emit('error', result.error);
+      }
+      return result;
+    };
+
+    const phasePromise = Promise.all(wrappedTasks)
+      .then((results) => Promise.all(results.map(resultMap)));
+
+    this.phasePromises.set(phase, phasePromise);
+    return phasePromise
+      .then((result) => {
+        this.eventEmitter.emit(phase, result);
+        return result;
+      });;
+  }
+
+  private beforeExit() {
+    this.stopLifecycle();
   }
 
   /**
@@ -117,6 +132,7 @@ class ExecutorImpl {
         return;
       }
       logger.debug('Starting lifecycle');
+      process.on('beforeExit', this.beforeExit.bind(this));
       this.execution = this.execute();
     });
   }
@@ -125,17 +141,20 @@ class ExecutorImpl {
  * Stops the lifecycle of the ExpressBeans application.
  * All tasks are cleared and the lifecycle is stopped.
  * USE ONLY IF YOU KNOW WHAT YOU ARE DOING
- * @returns {void}
+ * @returns {Promise<void>}
  */
-  stopLifecycle(): void {
+  async stopLifecycle(): Promise<void> {
     logger.debug('Stopping lifecycle');
-    this.phasePromises.clear();
-    this.tasks.clear();
-    this.started = false;
-    this.execution = null;
-    this.eventEmitter.removeAllListeners();
-    this.eventEmitter = new EventEmitter<ExecutorEventMap>();
-    logger.debug('Lifecycle stopped');
+    await this.executePhase('exit').then(() => {
+      this.phasePromises.clear();
+      this.tasks.clear();
+      this.started = false;
+      this.execution = null;
+      this.eventEmitter.removeAllListeners();
+      this.eventEmitter = new EventEmitter<ExecutorEventMap>();
+      logger.debug('Lifecycle stopped');
+      process.removeListener('beforeExit', this.beforeExit.bind(this));
+    });
   }
 }
 
