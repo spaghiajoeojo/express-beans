@@ -40,10 +40,12 @@ class ExecutorImpl {
  * @param phase {ExecutorPhase} phase in which the task should be executed
  */
   setExecution(phase: ExecutorPhase, task: () => Promise<void> | void) {
-    if (!this.tasks.has(phase)) {
-      this.tasks.set(phase, []);
+    let phaseTasks = this.tasks.get(phase);
+    if (!phaseTasks) {
+      phaseTasks = [];
     }
-    this.tasks.get(phase)?.push(task);
+    phaseTasks.push(task);
+    this.tasks.set(phase, phaseTasks);
   }
 
   getExecutionPhase(phase: ExecutorPhase) {
@@ -161,29 +163,5 @@ export const Executor: ExecutorType = new Proxy(ExecutorImpl, {
     }
 
     return value;
-  },
-
-  set(target, prop, value, receiver) {
-    if (prop in target) {
-      return Reflect.set(target, prop, value, receiver);
-    }
-
-    const inst = getInstance();
-    return Reflect.set(inst, prop, value, inst);
-  },
-
-  has(target, prop) {
-    return Reflect.has(target, prop) || Reflect.has(getInstance(), prop);
-  },
-
-  ownKeys(target) {
-    const classKeys = Reflect.ownKeys(target);
-    const instanceKeys = Reflect.ownKeys(getInstance());
-    return [...classKeys, ...instanceKeys];
-  },
-
-  getOwnPropertyDescriptor(target, prop) {
-    return Reflect.getOwnPropertyDescriptor(target, prop)
-           || Reflect.getOwnPropertyDescriptor(getInstance(), prop);
   },
 }) as ExecutorType;

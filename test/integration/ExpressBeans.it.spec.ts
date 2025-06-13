@@ -75,6 +75,27 @@ describe('ExpressBeans integration tests', () => {
     expect(text).toBe('42 is the answer');
   });
 
+  test('start of application with baseURL', async () => {
+    // GIVEN
+    @RouterBean('/test')
+    class TestRouter {
+      @Route('GET', '/42')
+      test(_req: Request, res: Response) {
+        res.send('42 is the answer');
+      }
+    }
+    application = new ExpressBeans({ listen: false, routerBeans: [TestRouter], baseURL: '/api' });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    // WHEN
+    const { text } = await request(server).get('/api/test/42').expect(200);
+
+    // THEN
+    expect(text).toBe('42 is the answer');
+  });
+
   test('creation of a new application', async () => {
     // WHEN
     application = new ExpressBeans({ listen: false });
