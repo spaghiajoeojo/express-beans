@@ -151,4 +151,41 @@ describe('InjectBean.ts', () => {
       expect((instance.dep as any).key).not.toBeDefined();
     }).toThrow(new Error('Cannot get instance for {"key":"value"}: it is not an ExpressBean'));
   });
+
+  it('proxies a dependency', async () => {
+    // GIVEN
+    class TypeA {
+      prop: string = 'value';
+
+      getProp() {
+        return this.prop;
+      }
+    }
+    const T: any = TypeA;
+    T._beanUUID = crypto.randomUUID();
+    T._instance = new TypeA();
+    T._className = TypeA.name;
+
+    // WHEN
+    class Class {
+      @InjectBean(TypeA)
+      private dep: TypeA;
+
+      getDep() {
+        return this.dep;
+      }
+
+      getProp() {
+        return this.dep.getProp();
+      }
+    }
+    const instance = new Class();
+    await flushPromises();
+
+    // THEN
+    expect(isProxy(instance.getDep())).toBe(true);
+    expect((instance.getDep() as any)._beanUUID).toBe(T._beanUUID);
+    expect(instance.getProp()).toBe('value');
+    expect.assertions(3);
+  });
 });

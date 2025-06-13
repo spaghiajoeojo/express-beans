@@ -1,29 +1,6 @@
 import {
   registeredMethods, logger, registeredBeans,
 } from '@/core';
-import { Executor } from '@/core/Executor';
-
-/**
- * Creates a proxy for a class method
- * @param singleton
- * @param classMethod
- */
-const proxyMethod = (singleton: any, classMethod: PropertyKey): void => {
-  logger.debug(`creating proxy for ${singleton._className}.${String(classMethod)}`);
-  Reflect.defineProperty(singleton, classMethod, {
-    value: new Proxy(singleton[classMethod], {
-      get: (instance, actualMethod) => {
-        logger.debug(`proxying ${instance._className}.${String(actualMethod)}`);
-        return async (...args: any[]) => {
-          logger.debug(`Executing ${instance._className}.${String(actualMethod)}`);
-          await Executor.getExecutionPhase('init');
-          const result = await instance[actualMethod](...args);
-          return result;
-        };
-      },
-    }),
-  });
-};
 
 /**
  * Instantiates a new instance of the singleton and registers it
@@ -52,7 +29,6 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
     .forEach((classMethod) => {
       logger.debug(`registering method ${target.name}.${String(classMethod)}`);
       registeredMethods.set(singleton[classMethod], singleton);
-      proxyMethod(singleton, classMethod);
     });
   registeredBeans.set(target.name, singleton);
 }

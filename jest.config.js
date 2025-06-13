@@ -1,6 +1,7 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 export default {
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
+  coveragePathIgnorePatterns: ['<rootDir>/test/utils'],
   testEnvironment: 'node',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
