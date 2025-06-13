@@ -11,7 +11,7 @@ export function Setup<This>(
   context: ClassMethodDecoratorContext<This, () => any>,
 ) {
   logger.debug(`Registering setup function ${String(context.name)}`);
-  Executor.setExecution('decorate', () => {
+  Executor.setExecution('routing', () => {
     const bean = registeredMethods.get(method) as ExpressBean;
     logger.debug(`Initializing ${bean._className}.${String(context.name)} as setup function`);
     Executor.setExecution('init', () => method.bind(bean)());

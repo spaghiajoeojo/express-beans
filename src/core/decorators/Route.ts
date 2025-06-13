@@ -30,7 +30,7 @@ export function Route<This>(
     method: RouterBeanHandler,
     context: ClassMethodDecoratorContext<This, RouterBeanHandler>,
   ) => {
-    Executor.setExecution('decorate', () => {
+    Executor.setExecution('routing', () => {
       const bean = registeredMethods.get(method) as ExpressRouterBean;
       if (bean._routerConfig) {
         const { _routerConfig } = bean;
