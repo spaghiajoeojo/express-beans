@@ -92,7 +92,7 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
             (resolve, reject) => {
               this.listen(port, (err) => (err ? reject(err) : resolve()));
             },
-          ).catch((err) => Promise.reject(err));
+          ).catch((err: Error) => Promise.reject(err));
         }
         return Promise.resolve();
       });

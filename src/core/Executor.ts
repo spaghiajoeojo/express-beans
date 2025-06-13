@@ -41,10 +41,7 @@ class ExecutorImpl {
  * @param phase {ExecutorPhase} phase in which the task should be executed
  */
   setExecution(phase: ExecutorPhase, task: () => Promise<void> | void) {
-    let phaseTasks = this.tasks.get(phase);
-    if (!phaseTasks) {
-      phaseTasks = [];
-    }
+    let phaseTasks = this.tasks.get(phase) ?? [];
     phaseTasks.push(task);
     this.tasks.set(phase, phaseTasks);
   }
@@ -162,9 +159,7 @@ type ExecutorType = typeof ExecutorImpl & ExecutorImpl;
 let instance: ExecutorImpl | null = null;
 
 function getInstance() {
-  if (!instance) {
-    instance = new ExecutorImpl();
-  }
+  instance ??= new ExecutorImpl();
   return instance;
 }
 
