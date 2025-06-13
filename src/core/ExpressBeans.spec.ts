@@ -127,6 +127,26 @@ describe('ExpressBeans.ts', () => {
     mockExit.mockRestore();
   });
 
+  it('emits error event if listen function fails', async () => {
+    // GIVEN
+    const error = new Error('Port already in use');
+    expressMock.listen.mockImplementationOnce((_, cb) => {
+      cb(error);
+    });
+
+    // WHEN
+    const app = await ExpressBeans.createApp();
+    app.on('error', (err) => {
+      expect(err).toBe(error);
+    });
+    await flushPromises();
+    await Executor.getExecutionPhase('init');
+
+    // THEN
+    expect(mockExit).toHaveBeenCalledWith(1);
+    mockExit.mockRestore();
+  });
+
   it('stops the process if listen function fails', async () => {
     // GIVEN
     const error = new Error('Port already in use');

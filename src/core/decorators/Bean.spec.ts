@@ -53,7 +53,7 @@ describe('Bean.ts', () => {
 
     // THEN
     expect(registeredBeans.get('Class')).toBe(C._instance);
-    expect(registeredMethods.get(C._instance.getId)).toBe(C.__target__);
+    expect(registeredMethods.get(C._instance.getId)).toBe(C._instance);
     expect(C._beanUUID).toBeDefined();
     expect(C._className).toBe('Class');
   });
