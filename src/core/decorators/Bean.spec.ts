@@ -1,6 +1,7 @@
 import { flushPromises } from '@test/utils/testUtils';
 import { Bean } from '@/main';
 import { registeredBeans, registeredMethods } from '@/core';
+import { Executor } from '../Executor';
 
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
@@ -27,7 +28,7 @@ describe('Bean.ts', () => {
     }
     const C: any = Class;
     await flushPromises();
-    await flushPromises();
+    await Executor.execute();
 
     // THEN
     expect(registeredBeans.get('Class')).toBe(C._instance);
@@ -48,11 +49,11 @@ describe('Bean.ts', () => {
     }
     const C: any = Class;
     await flushPromises();
-    await flushPromises();
+    await Executor.execute();
 
     // THEN
     expect(registeredBeans.get('Class')).toBe(C._instance);
-    expect(registeredMethods.get(C._instance.getId)).toBe(C._instance);
+    expect(registeredMethods.get(C._instance.getId)).toBe(C.__target__);
     expect(C._beanUUID).toBeDefined();
     expect(C._className).toBe('Class');
   });

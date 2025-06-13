@@ -14,4 +14,7 @@ export default {
       },
     ],
   },
+  maxWorkers: 1,
+  clearMocks: true,
+  verbose: true,
 };

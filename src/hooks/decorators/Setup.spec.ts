@@ -1,6 +1,7 @@
 import { flushPromises } from '@test/utils/testUtils';
 import { registeredBeans, registeredMethods } from '@/core';
 import { Setup } from '@/hooks/decorators/Setup';
+import { Executor } from '@/core/Executor';
 
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
@@ -17,6 +18,7 @@ describe('Setup.ts', () => {
     jest.resetAllMocks();
     registeredMethods.clear();
     registeredBeans.clear();
+    Executor.stopLifecycle();
   });
 
   it('execute a setup function', async () => {
@@ -35,6 +37,7 @@ describe('Setup.ts', () => {
     registeredMethods.set(bean.init, bean);
     registeredBeans.set('Class', bean);
     await flushPromises();
+    await Executor.execute();
 
     // THEN
     expect(bean.initialized)
@@ -58,6 +61,7 @@ describe('Setup.ts', () => {
     registeredMethods.set(bean.init, bean);
     registeredBeans.set('Class', bean);
     await flushPromises();
+    await Executor.execute();
 
     // THEN
     expect(bean.initialized)

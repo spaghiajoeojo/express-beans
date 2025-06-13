@@ -8,9 +8,9 @@
 ![GitHub package.json dependency version (dev)](https://img.shields.io/github/package-json/dependency-version/spaghiajoeojo/express-beans/dev/typescript)
 [![Build Status](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/badges/build.png?b=main)](https://scrutinizer-ci.com/g/spaghiajoeojo/express-beans/build-status/main)
 
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg)](https://sonarcloud.io/summary/new_code?id=express-beans)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=express-beans&metric=coverage)](https://sonarcloud.io/summary/new_code?id=express-beans)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=express-beans&metric=bugs)](https://sonarcloud.io/summary/new_code?id=express-beans)
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg)](https://sonarcloud.io/summary/new_code?id=express-beans)
 
 # ExpressBeans
 ExpressBeans is the IoC Container (Inversion of Control Container) that you didn't know you needed.
@@ -100,3 +100,27 @@ export class ExampleService {
 ```console
 npm install express-beans
 ```
+ 
+## Beans Lifecycle
+
+The lifecycle of the beans is the following:
+
+- `start`: The application starts, and tasks registered for this phase are executed.
+- `register`: Beans and router beans are registered with the application.
+- `routing`: Routes are registered with the application.
+- `init`: The application is initialized, and tasks registered for this phase are executed.
+
+## Hooks
+You can use the `@Setup` hook to add a function that will be executed right after the application is initialized.
+
+```ts
+@Setup
+mySetupFunction() {
+  // do something
+}
+```
+Every request received will be served only after the application is initialized and `@Setup` functions are executed.
+
+
+## License
+[MIT](https://github.com/spaghiajoeojo/express-beans/blob/main/LICENSE.md)

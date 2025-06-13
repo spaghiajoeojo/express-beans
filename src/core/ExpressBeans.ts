@@ -1,26 +1,28 @@
-import express, { Express, Request } from 'express';
+import express, { Express, Request, Router } from 'express';
 import { pinoHttp, startTime } from 'pino-http';
 import { ServerResponse, IncomingMessage } from 'http';
-import { CreateExpressBeansOptions, ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
-import { logger, registeredBeans } from '@/core';
+import EventEmitter from 'events';
+import { ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
+import { logger } from '@/core';
+import { Executor } from '@/core/Executor';
 
-export default class ExpressBeans {
+type ExpressBeanEventMap = {
+  error: [Error];
+  initialized: [];
+}
+
+export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
   private readonly app: Express;
 
-  private onInitialized: (() => void) | undefined;
+  private readonly router: Router;
 
   /**
    * Creates a new ExpressBeans application
    * @param options {ExpressBeansOptions}
    */
-  static createApp(options?: Partial<CreateExpressBeansOptions>): Promise<ExpressBeans> {
-    return new Promise((resolve, reject) => {
-      let app: ExpressBeans;
-      const onInitialized = () => {
-        resolve(app);
-      };
-      app = new ExpressBeans({ ...options, onInitialized, onError: reject });
-    });
+  static async createApp(options?: Partial<ExpressBeansOptions>): Promise<ExpressBeans> {
+    const app = new ExpressBeans({ ...options });
+    return app;
   }
 
   /**
@@ -29,16 +31,25 @@ export default class ExpressBeans {
    * @param options {ExpressBeansOptions}
    */
   constructor(options?: Partial<ExpressBeansOptions>) {
+    super();
+    this.router = express.Router();
     this.app = express();
     this.app.disable('x-powered-by');
-    this.app.use(pinoHttp(
-      {
-        logger,
-        customSuccessMessage: this.serializeRequest.bind(this),
-        customErrorMessage: this.serializeRequest.bind(this),
-      },
-    ));
-    this.initialize(options ?? {});
+    this.app.use(options?.baseURL ?? '/', this.router);
+    if (options?.logRequests === undefined || options.logRequests) {
+      this.router.use(pinoHttp(
+        {
+          logger,
+          customSuccessMessage: this.serializeRequest.bind(this),
+          customErrorMessage: this.serializeRequest.bind(this),
+        },
+      ));
+    }
+    Executor.setExecution('init', async () => this.initialize(options ?? {}));
+    Executor.eventEmitter.on('error', () => {
+      process.exit(1);
+    });
+    Executor.startLifecycle();
   }
 
   private serializeRequest(req: IncomingMessage, res: ServerResponse) {
@@ -67,71 +78,84 @@ export default class ExpressBeans {
    * @param onInitialized {Function}
    * @private
    */
-  private initialize({
+  private async initialize({
     listen = true,
     port = 8080,
     routerBeans = [],
-    onInitialized,
-    onError,
   }: Partial<ExpressBeansOptions>) {
-    this.onInitialized = onInitialized;
-    this.checkRouterBeans(routerBeans);
-    setImmediate(() => {
-      try {
-        this.registerRouters();
+    return Promise.resolve(routerBeans as Array<ExpressRouterBean>)
+      .then(this.checkRouterBeans.bind(this))
+      .then(this.registerRouters.bind(this))
+      .then(() => {
         if (listen) {
-          this.listen(port);
+          return new Promise<void>(
+            (resolve, reject) => {
+              this.listen(port, (err) => (err ? reject(err) : resolve()));
+            },
+          ).catch((err) => Promise.reject(err));
         }
-      } catch (err: any) {
-        if (onError) {
-          onError(err);
-        } else {
-          logger.error(new Error('Critical error', { cause: err }));
-          process.exit(1);
-        }
+        return Promise.resolve();
+      });
+  }
+
+  /**
+   * Starts the server and emits the initialized event
+   * @param {number} port
+   */
+  listen(port: number, callback?: (error?: Error) => void) {
+    return this.app.listen(port, (error) => {
+      callback?.(error);
+      if (error) {
+        this.emit('error', error);
+        return;
       }
+      logger.info(`Server listening on port ${port}`);
+      this.emit('initialized');
     });
   }
 
   /**
-   * Starts the server and calls onInitialized callback
-   * @param {number} port
+   * Registers all routers
+   * @param routers {Array<ExpressRouterBean>}
+   * @private
    */
-  listen(port: number) {
-    return this.app.listen(port, () => {
-      logger.info(`Server listening on port ${port}`);
-      if (this.onInitialized) {
-        this.onInitialized();
-      }
+  private async registerRouters(routers: Array<ExpressRouterBean>) {
+    return new Promise((resolve, reject) => {
+      Array.from(routers)
+        .map((bean) => bean._instance)
+        .forEach((instance) => {
+          try {
+            const {
+              path,
+              router,
+            } = instance._routerConfig;
+            logger.debug(`Registering router ${instance._className}`);
+            this.router.use(path, router);
+          } catch (e) {
+            logger.error(e);
+            reject(new Error(`Router ${instance._className} not initialized correctly`, { cause: e }));
+          }
+        });
+      resolve(true);
     });
   }
 
-  private registerRouters() {
-    Array.from(registeredBeans.values())
-      .map((bean) => bean as ExpressRouterBean)
-      .filter((bean) => bean._routerConfig)
-      .forEach((bean) => {
-        try {
-          const {
-            path,
-            router,
-          } = bean._routerConfig;
-          logger.debug(`Registering router ${bean._className}`);
-          this.app.use(path, router);
-        } catch (e) {
-          logger.error(e);
-          throw new Error(`Router ${bean._className} not initialized correctly`);
-        }
-      });
-  }
-
-  private checkRouterBeans(routerBeans: Array<ExpressRouterBean>) {
+  /**
+   * Checks if all beans are valid
+   * @param routerBeans {Array<ExpressRouterBean>}
+   * @returns {Array<ExpressRouterBean>}
+   * @throws {Error}
+   * @private
+   */
+  private async checkRouterBeans(routerBeans: Array<ExpressRouterBean>):
+  Promise<ExpressRouterBean[]> {
     const invalidBeans = routerBeans
       .filter(((bean) => !bean._beanUUID))
       .map((object: any) => object.prototype.constructor.name);
     if (invalidBeans.length > 0) {
-      throw new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`);
+      return Promise.reject(new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`));
     }
+    return routerBeans;
   }
 
   /**
