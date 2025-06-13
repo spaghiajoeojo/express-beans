@@ -32,6 +32,8 @@ class ExecutorImpl {
 
   execution: Promise<Result<void>[]> | null = null;
 
+
+
   /**
  * Registers a task to be executed in a given phase.
  * @param task {() => Promise<void> | void} function to be executed, can return a Promise or void
@@ -177,7 +179,7 @@ export const Executor: ExecutorType = new Proxy(ExecutorImpl, {
   ownKeys(target) {
     const classKeys = Reflect.ownKeys(target);
     const instanceKeys = Reflect.ownKeys(getInstance());
-    return [...new Set([...classKeys, ...instanceKeys])];
+    return [...classKeys, ...instanceKeys];
   },
 
   getOwnPropertyDescriptor(target, prop) {
