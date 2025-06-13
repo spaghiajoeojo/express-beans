@@ -105,8 +105,22 @@ npm install express-beans
 
 The lifecycle of the beans is the following:
 
-- `@Setup` (optional)
-- `@PreDestroy` (optional)
+- `start`: The application starts, and tasks registered for this phase are executed.
+- `register`: Beans and router beans are registered with the application.
+- `routing`: Routes are registered with the application.
+- `init`: The application is initialized, and tasks registered for this phase are executed.
+
+## Hooks
+You can use the `@Setup` hook to add a function that will be executed right after the application is initialized.
+
+```ts
+@Setup
+mySetupFunction() {
+  // do something
+}
+```
+Every request received will be served only after the application is initialized and `@Setup` functions are executed.
+
 
 ## License
 [MIT](https://github.com/spaghiajoeojo/express-beans/blob/main/LICENSE.md)

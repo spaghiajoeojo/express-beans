@@ -7,7 +7,7 @@ import {
 const phases = {
   0: 'start',
   1: 'register',
-  2: 'decorate',
+  2: 'routing',
   3: 'init',
 } as const;
 export type ExecutorPhase = typeof phases[keyof typeof phases];

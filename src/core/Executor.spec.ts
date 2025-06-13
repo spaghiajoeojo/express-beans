@@ -6,7 +6,7 @@ describe('Executor.ts', () => {
   });
 
   it.each([
-    'start', 'register', 'decorate', 'init',
+    'start', 'register', 'routing', 'init',
   ] as const)('emits events when a phase is executed: %s', async (phase) => {
     const mock = jest.fn();
     Executor.eventEmitter.on(phase, mock);
@@ -16,7 +16,7 @@ describe('Executor.ts', () => {
   });
 
   it.each([
-    'start', 'register', 'decorate', 'init',
+    'start', 'register', 'routing', 'init',
   ] as const)('execute tasks when a phase is executed: %s', async (phase) => {
     const mock = jest.fn();
     Executor.setExecution(phase, () => mock());
