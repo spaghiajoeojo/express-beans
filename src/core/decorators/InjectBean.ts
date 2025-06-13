@@ -32,11 +32,19 @@ function getSingleton<T>(singletonClass: T): T {
  * @decorator
  * @param singletonClass
  */
-export function InjectBean<T>(singletonClass: NonNullable<T>) {
-  return (_value: unknown, context: ClassFieldDecoratorContext) => () => {
-    const singletonInstance = getSingleton(singletonClass);
-    const className = (singletonInstance as unknown as ExpressBean)._className;
-    logger.debug(`initializing ${String(context.name)} with instance of bean ${className}`);
-    return singletonInstance as any;
-  };
+export function InjectBean<T extends object>(singletonClass: NonNullable<T>) {
+  return (_value: unknown, _context: ClassFieldDecoratorContext) => () => new Proxy<T>(
+    singletonClass ?? {},
+    {
+      get: (target, property) => {
+        if (property === '_beanUUID' || property === '_className') {
+          return (target as ExpressBean)[property];
+        }
+        const singletonInstance = getSingleton(singletonClass);
+        const className = (singletonInstance as unknown as ExpressBean)._className;
+        logger.debug(`proxying ${className}.${String(property)}`);
+        return (singletonInstance as any)[property];
+      },
+    },
+  ) as any;
 }

@@ -2,6 +2,7 @@ import { flushPromises } from '@test/utils/testUtils';
 import { Request, Response } from 'express';
 import { Route } from '@/core/decorators/Route';
 import { registeredBeans, registeredMethods } from '@/core';
+import { Executor } from '../Executor';
 
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
@@ -18,6 +19,7 @@ describe('Route.ts', () => {
     jest.resetAllMocks();
     registeredMethods.clear();
     registeredBeans.clear();
+    Executor.stopLifecycle();
   });
 
   it.each([
@@ -52,7 +54,9 @@ describe('Route.ts', () => {
     };
     registeredBeans.set('Class', bean);
     await flushPromises();
+    await Executor.execute();
     mock.mock.calls[0][1](null, resMock);
+    await flushPromises();
 
     // THEN
     expect(mock).toHaveBeenCalledWith('/num', expect.any(Function));
@@ -91,7 +95,9 @@ describe('Route.ts', () => {
     };
     registeredBeans.set('Class', bean);
     await flushPromises();
+    await Executor.execute();
     mock.mock.calls[0][1](null, resMock);
+    await flushPromises();
 
     // THEN
     expect(mock).toHaveBeenCalledWith('/num', expect.any(Function));

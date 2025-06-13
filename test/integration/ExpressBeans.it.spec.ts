@@ -5,6 +5,7 @@ import request from 'supertest';
 import ExpressBeans from '@/core/ExpressBeans';
 import { Logger, Route, RouterBean } from '@/main';
 import { logger } from '@/core';
+import { Executor } from '@/core/Executor';
 
 jest.mock('pino-http', () => ({
   pinoHttp: ({
@@ -43,6 +44,7 @@ describe('ExpressBeans integration tests', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
+    Executor.stopLifecycle();
   });
 
   afterEach(() => {
@@ -105,6 +107,8 @@ describe('ExpressBeans integration tests', () => {
     server = application.listen(4001);
     server2 = application2.listen(4002);
     await flushPromises();
+    await Executor.getExecutionPhase('init');
+    await flushPromises();
 
     // WHEN
     const { text } = await request(server).get('/test1/42').expect(200);
@@ -129,6 +133,7 @@ describe('ExpressBeans integration tests', () => {
     }
     application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
     await flushPromises();
+    await Executor.getExecutionPhase('init');
     server = application.listen(3001);
     await flushPromises();
 
@@ -152,6 +157,7 @@ describe('ExpressBeans integration tests', () => {
     application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
     await flushPromises();
     server = application.listen(3001);
+    await Executor.getExecutionPhase('init');
     await flushPromises();
 
     // WHEN

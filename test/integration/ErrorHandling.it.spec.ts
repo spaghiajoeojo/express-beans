@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import request from 'supertest';
 import ExpressBeans from '@/core/ExpressBeans';
 import { Route, RouterBean } from '@/main';
+import { Executor } from '@/core/Executor';
 
 describe('Error Handling integration tests', () => {
   let server: http.Server;
@@ -14,6 +15,7 @@ describe('Error Handling integration tests', () => {
 
   afterEach(() => {
     server.close();
+    Executor.stopLifecycle();
   });
 
   test('error handling on synchronous routes', async () => {

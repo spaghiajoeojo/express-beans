@@ -14,13 +14,8 @@ export interface ExpressBeansOptions {
   listen: boolean,
   port: number,
   routerBeans: Array<any>,
-  onInitialized?: () => void,
-  onError?: (err: Error) => void,
-}
-
-export interface CreateExpressBeansOptions {
-  port: number,
-  routerBeans: Array<any>,
+  logRequests?: boolean,
+  baseURL?: string
 }
 
 export declare type HTTPMethod =
