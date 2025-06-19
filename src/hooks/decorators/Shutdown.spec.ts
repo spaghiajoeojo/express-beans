@@ -1,7 +1,7 @@
 import { flushPromises } from '@test/utils/testUtils';
 import { registeredBeans, registeredMethods } from '@/core';
-import { Shutdown } from '@/hooks/decorators/Shutdown';
-import { Executor } from '@/core/Executor';
+import { Shutdown } from '@/main';
+import { Executor } from '@/core/executor';
 
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),

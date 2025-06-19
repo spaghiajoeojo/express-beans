@@ -5,7 +5,7 @@ import request from 'supertest';
 import ExpressBeans from '@/core/ExpressBeans';
 import { Logger, Shutdown, Route, RouterBean } from '@/main';
 import { logger } from '@/core';
-import { Executor } from '@/core/Executor';
+import { Executor } from '@/core/executor';
 
 jest.mock('pino-http', () => ({
   pinoHttp: ({

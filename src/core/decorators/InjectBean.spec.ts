@@ -1,7 +1,7 @@
 import { flushPromises } from '@test/utils/testUtils';
 import { isProxy } from 'util/types';
 import { InjectBean } from '@/core/decorators/InjectBean';
-import { Executor } from '@/core/Executor';
+import { Executor } from '@/core/executor';
 
 jest.mock('@/core', () => ({
   logger: {

@@ -23,7 +23,7 @@ const commuteError = (thrown: any) => {
   return new Error(String(thrown));
 };
 
-export const wrap = <T>(fn: () => T | Promise<T>): Result<T> | Promise<Result<T>> => {
+export const wrap = <T>(fn: () => T | Promise<T>): Result<T> | ResultAsync<T> => {
   try {
     const result = fn();
 

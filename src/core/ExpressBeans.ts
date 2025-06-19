@@ -4,7 +4,8 @@ import { ServerResponse, IncomingMessage } from 'http';
 import EventEmitter from 'events';
 import { ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
 import { logger } from '@/core';
-import { Executor } from '@/core/Executor';
+import { Executor } from '@/core/executor';
+import { Objects } from '@/utils/Objects';
 
 type ExpressBeanEventMap = {
   error: [Error];
@@ -45,8 +46,8 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
         },
       ));
     }
-    Executor.setExecution('init', async () => this.initialize(options ?? {}));
-    Executor.eventEmitter.on('error', () => {
+    Executor.setExecution('run', () => this.initialize(options ?? {}));
+    Executor.on('error', () => {
       process.exit(1);
     });
     Executor.startLifecycle();
@@ -64,7 +65,7 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
       request.headers.referer,
       request.headers['user-agent'],
     ]
-      .filter((i) => !!i)
+      .filter(Objects.nonNullish)
       .join(' ');
     return `${remoteAddress} - "${method} ${originalUrl} HTTP/${httpVersion}" ${optionals} - ${responseTime}ms`;
   }
@@ -104,8 +105,8 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
    */
   listen(port: number, callback?: (error?: Error) => void) {
     return this.app.listen(port, (error) => {
-      callback?.(error);
       if (error) {
+        callback?.(error);
         this.emit('error', error);
         return;
       }
