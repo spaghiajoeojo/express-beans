@@ -1,3 +1,8 @@
+# ExpressBeans
+ExpressBeans is the IoC Container (Inversion of Control Container) that you didn't know you needed.
+If you love Node.js and the Spring Boot way of code organization this lightweight framework is for you.
+ExpressBeans is an almost zero dependency framework (it wraps Express.js) to offer an easy-to-use way of building your next Express project.
+
 <p align="center">
   <img src="assets/logo.svg" alt="">
 </p>
@@ -10,12 +15,8 @@
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=express-beans&metric=coverage)](https://sonarcloud.io/summary/new_code?id=express-beans)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=express-beans&metric=bugs)](https://sonarcloud.io/summary/new_code?id=express-beans)
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg)](https://sonarcloud.io/summary/new_code?id=express-beans)
-
-# ExpressBeans
-ExpressBeans is the IoC Container (Inversion of Control Container) that you didn't know you needed.
-If you love Node.js and the Spring Boot way of code organization this lightweight framework is for you.
-ExpressBeans is an almost zero dependency framework (it wraps Express.js) to offer an easy-to-use way of building your next Express project.
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=express-beans&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=express-beans)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=express-beans&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=express-beans)
 
 ## Get started
 Try ExpressBeans with the official generator:
@@ -106,9 +107,11 @@ npm install express-beans
 The lifecycle of the beans is the following:
 
 - `start`: The application starts, and tasks registered for this phase are executed.
-- `register`: Beans and router beans are registered with the application.
-- `routing`: Routes are registered with the application.
+- `register`: Beans and router beans are registered.
+- `routing`: Routes are registered.
 - `init`: The application is initialized, and tasks registered for this phase are executed.
+- `run`: The application is running, and tasks registered for this phase are executed.
+- `exit`: The application is shutting down, and tasks registered for this phase are executed.
 
 ## Hooks
 
@@ -122,9 +125,12 @@ mySetupFunction() {
 }
 ```
 Every request received will be served only after the application is initialized and `@Setup` functions are executed.
-
+process.emit('beforeExit', Number(code)
 ### Shutdown
 You can use the `@Shutdown` hook to add a function that will be executed right before the application is shutdown.
+
+### Order
+You can use the `@Order` hook to set the execution order of a hook. The default order is 0, negative orders are executed before positive ones in the same phase.
 
 ```ts
 @Shutdown

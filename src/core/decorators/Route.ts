@@ -6,7 +6,7 @@ import {
   logger, registeredMethods,
 } from '@/core';
 import { RouterMethods } from '@/core/RouterMethods';
-import { Executor } from '@/core/Executor';
+import { Executor } from '@/core/executor';
 
 // Return type here should be "void | Promise<void>" but it is not possible to do it.
 // Using "any" instead
