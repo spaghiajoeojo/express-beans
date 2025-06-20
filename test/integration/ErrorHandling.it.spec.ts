@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import request from 'supertest';
 import ExpressBeans from '@/core/ExpressBeans';
 import { Route, RouterBean } from '@/main';
-import { Executor } from '@/core/Executor';
+import { Executor } from '@/core/executor';
 
 describe('Error Handling integration tests', () => {
   let server: http.Server;

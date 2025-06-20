@@ -6,7 +6,7 @@ import {
   logger, registeredBeans,
 } from '@/core';
 import { ExpressBean } from '@/ExpressBeansTypes';
-import { Executor } from '@/core/Executor';
+import { Executor } from '@/core/executor';
 import { wrapError } from './errors';
 
 jest.mock('express');
@@ -57,7 +57,8 @@ describe('ExpressBeans.ts', () => {
 
     // WHEN
     await flushPromises();
-    await Executor.getExecutionPhase('init');
+    await Executor.getExecutionPhase('start');
+
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
@@ -74,7 +75,7 @@ describe('ExpressBeans.ts', () => {
 
     // WHEN
     await flushPromises();
-    await Executor.getExecutionPhase('init');
+    await Executor.getExecutionPhase('start');
 
     // THEN
     expect(application instanceof ExpressBeans).toBe(true);
@@ -111,17 +112,18 @@ describe('ExpressBeans.ts', () => {
   });
 
   it('throws an error if listen function fails', async () => {
+    // GIVEN
     const error = new Error('Port already in use');
-
-    // Reset esplicito
     expressMock.listen.mockReset();
     expressMock.listen.mockImplementation((_port, errorHandler) => {
       errorHandler(error);
     });
 
+    // WHEN
     ExpressBeans.createApp({ port: 4000 });
     await flushPromises();
 
+    // THEN
     await expect(Executor.execution).resolves.toEqual([wrapError(error)]);
     expect(mockExit).toHaveBeenCalledWith(1);
     mockExit.mockRestore();
