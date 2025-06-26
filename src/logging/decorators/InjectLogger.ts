@@ -1,5 +1,5 @@
 import { logger } from '@/core';
-import Logger from '@/logging/Logger';
+import { createLogger } from '@/logging/Logger';
 
 /**
  * Initializes a Logger with a specified prefix message
@@ -9,6 +9,6 @@ import Logger from '@/logging/Logger';
 export function InjectLogger(scope?: string) {
   return (_value: any, _context: ClassFieldDecoratorContext) => () => {
     logger.debug(`initializing ${scope ?? 'anonymous'} logger`);
-    return Logger(scope);
+    return createLogger(scope);
   };
 }

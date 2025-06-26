@@ -8,6 +8,7 @@ export { InjectLogger } from '@/logging/decorators/InjectLogger';
 export { Cached } from '@/cache/decorators/Cached';
 export { Order } from '@/core/decorators/Order';
 export type { Logger } from 'pino';
+export { createLogger } from '@/logging/Logger';
 
 /* aliases (Springboot like) */
 export { Bean as Component } from '@/core/decorators/Bean';

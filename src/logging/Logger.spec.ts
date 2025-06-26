@@ -1,5 +1,5 @@
 import pino from 'pino';
-import Logger from '@/logging/Logger';
+import { createLogger } from '@/logging/Logger';
 import Mock = jest.Mock;
 
 jest.mock('pino');
@@ -18,7 +18,7 @@ describe('Logger.ts', () => {
     pinoConstructor.mockReturnValue(pinoMock);
 
     // WHEN
-    Logger('test-scope');
+    createLogger('test-scope');
 
     // THEN
     expect(pino).toHaveBeenCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
@@ -33,7 +33,7 @@ describe('Logger.ts', () => {
     pinoConstructor.mockReturnValue(pinoMock);
 
     // WHEN
-    Logger('test-scope');
+    createLogger('test-scope');
 
     // THEN
     expect(pino).toHaveBeenCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
