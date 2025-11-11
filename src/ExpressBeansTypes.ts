@@ -4,6 +4,8 @@ export interface ExpressBean {
   _className: string,
   _instance: any,
   _beanUUID: string,
+  _interceptors: Map<string, (target: unknown, prop: string) => unknown>,
+  _mappers: Map<string, (original: unknown) => any>,
 }
 
 export interface ExpressRouterBean extends ExpressBean {

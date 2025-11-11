@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { Cached } from '@/cache/decorators/Cached';
 import { registeredBeans, registeredMethods } from '@/core';
+import { Executor } from '@/core/executor';
 
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
@@ -11,6 +12,16 @@ jest.mock('@/core', () => ({
     error: jest.fn(),
   },
 }));
+
+const createProxy = (actualBean: any) => new Proxy(actualBean, {
+  get(target, prop) {
+    const interceptor = (target as any)._interceptors.get(prop as string);
+    if (interceptor) {
+      return interceptor(target, prop as string);
+    }
+    return target[prop as keyof typeof target];
+  }
+});
 
 describe('Cached.ts', () => {
   beforeEach(() => {
@@ -31,18 +42,20 @@ describe('Cached.ts', () => {
         return randomUUID();
       }
     }
-    const bean = new Class();
+    const bean = createProxy(new Class());
+    (bean as any)._interceptors = new Map();
+    registeredBeans.set('Class', bean as any);
     registeredMethods.set(bean.getUUID, bean as any);
     registeredMethods.set(bean.getUUIDCached, bean as any);
-    registeredBeans.set('Class', bean as any);
+    await Executor.execute();
 
     // WHEN
     const resultNoCache = bean.getUUID();
     const resultCache = bean.getUUIDCached();
 
     // THEN
-    expect(bean.getUUID()).not.toBe(resultNoCache);
-    expect(bean.getUUIDCached()).toBe(resultCache);
+    expect(bean.getUUID()).not.toStrictEqual(resultNoCache);
+    expect(bean.getUUIDCached()).toStrictEqual(resultCache);
   });
 
   it('execute an async cached function', async () => {
@@ -57,18 +70,20 @@ describe('Cached.ts', () => {
         return randomUUID();
       }
     }
-    const bean = new Class();
+    const bean = createProxy(new Class());
+    (bean as any)._interceptors = new Map();
+    registeredBeans.set('Class', bean as any);
     registeredMethods.set(bean.getUUID, bean as any);
     registeredMethods.set(bean.getUUIDCached, bean as any);
-    registeredBeans.set('Class', bean as any);
+    await Executor.execute();
 
     // WHEN
     const resultNoCache = await bean.getUUID();
     const resultCache = await bean.getUUIDCached();
 
     // THEN
-    expect(await bean.getUUID()).not.toBe(resultNoCache);
-    expect(await bean.getUUIDCached()).toBe(resultCache);
+    expect(await bean.getUUID()).not.toStrictEqual(resultNoCache);
+    expect(await bean.getUUIDCached()).toStrictEqual(resultCache);
   });
 
   it('caches a function by its arguments', async () => {
@@ -79,16 +94,18 @@ describe('Cached.ts', () => {
         return `${randomUUID()}/${anArgument}`;
       }
     }
-    const bean = new Class();
-    registeredMethods.set(bean.getUUIDCached, bean as any);
+    const bean = createProxy(new Class());
+    (bean as any)._interceptors = new Map();
     registeredBeans.set('Class', bean as any);
+    registeredMethods.set(bean.getUUIDCached, bean as any);
+    await Executor.execute();
 
     // WHEN
     const resultCache = bean.getUUIDCached('first');
 
     // THEN
-    expect(bean.getUUIDCached('second')).not.toBe(resultCache);
-    expect(bean.getUUIDCached('first')).toBe(resultCache);
+    expect(bean.getUUIDCached('second')).not.toStrictEqual(resultCache);
+    expect(bean.getUUIDCached('first')).toStrictEqual(resultCache);
   });
 
   it('caches an async function by its arguments', async () => {
@@ -99,16 +116,18 @@ describe('Cached.ts', () => {
         return `${randomUUID()}/${anArgument}`;
       }
     }
-    const bean = new Class();
-    registeredMethods.set(bean.getUUIDCached, bean as any);
+    const bean = createProxy(new Class());
+    (bean as any)._interceptors = new Map();
     registeredBeans.set('Class', bean as any);
+    registeredMethods.set(bean.getUUIDCached, bean as any);
+    await Executor.execute();
 
     // WHEN
     const resultCache = await bean.getUUIDCached('first');
 
     // THEN
-    expect(await bean.getUUIDCached('second')).not.toBe(resultCache);
-    expect(await bean.getUUIDCached('first')).toBe(resultCache);
+    expect(await bean.getUUIDCached('second')).not.toStrictEqual(resultCache);
+    expect(await bean.getUUIDCached('first')).toStrictEqual(resultCache);
   });
 
   it('invalidates a cache when expired', async () => {
@@ -119,16 +138,18 @@ describe('Cached.ts', () => {
         return randomUUID();
       }
     }
-    const bean = new Class();
-    registeredMethods.set(bean.getUUIDCached, bean as any);
+    const bean = createProxy(new Class());
+    (bean as any)._interceptors = new Map();
     registeredBeans.set('Class', bean as any);
+    registeredMethods.set(bean.getUUIDCached, bean as any);
+    await Executor.execute();
 
     // WHEN
     const resultCache = bean.getUUIDCached();
-    expect(bean.getUUIDCached()).toBe(resultCache);
+    expect(bean.getUUIDCached()).toStrictEqual(resultCache);
     jest.useFakeTimers().setSystemTime(Date.now() + 60_001);
 
     // THEN
-    expect(bean.getUUIDCached()).not.toBe(resultCache);
+    expect(bean.getUUIDCached()).not.toStrictEqual(resultCache);
   });
 });

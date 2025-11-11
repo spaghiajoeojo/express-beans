@@ -29,7 +29,11 @@ jest.mock('pino-http', () => ({
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
   registeredMethods: new Map(),
-  logger: console,
+  logger: {
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
+  },
 }));
 
 describe('Cache integration tests', () => {
@@ -49,8 +53,8 @@ describe('Cache integration tests', () => {
     // GIVEN
     @RouterBean('/test')
     class TestRouter {
-      @Route('GET', '/42')
       @Cached()
+      @Route('GET', '/42')
       test(_req: Request, res: Response) {
         res.send(randomUUID());
       }
@@ -63,7 +67,7 @@ describe('Cache integration tests', () => {
     // WHEN
     const { text: text1 } = await request(server).get('/test/42');
     const { text: text2 } = await request(server).get('/test/42');
-    console.log(text1, text2);
+
     await flushPromises();
 
     // THEN
