@@ -47,7 +47,8 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
       ));
     }
     Executor.setExecution('run', () => this.initialize(options ?? {}));
-    Executor.on('error', () => {
+    Executor.on('error', (error) => {
+      logger.error(error);
       process.exit(1);
     });
     Executor.startLifecycle();
