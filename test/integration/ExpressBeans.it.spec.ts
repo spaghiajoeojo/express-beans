@@ -253,11 +253,11 @@ describe('ExpressBeans integration tests', () => {
     class RouterBean2 {
 
       @InjectBean(Bean1)
-        bean1: Bean1;
+      bean1: Bean1;
 
       @Route('GET', '/answer')
       getAnswer(_req: Request, res: Response) {
-        res.send(`The answer is ${this.bean1.getAnswer()}`);
+        res.send(this.bean1.getAnswer());
       }
     }
 
@@ -270,7 +270,7 @@ describe('ExpressBeans integration tests', () => {
     const { text } = await request(server).get('/test/answer').expect(200);
 
     // THEN
-    expect(text).toBe('The answer is 42');
+    expect(text).toBe('42');
   });
 
   test('Calling an asynchronous method in a service', async () => {
@@ -285,12 +285,12 @@ describe('ExpressBeans integration tests', () => {
     @RouterBean('/test')
     class RouterBean2 {
       @InjectBean(Bean1)
-        bean1: Bean1;
+      bean1: Bean1;
 
       @Route('GET', '/answer')
       async getAnswer(_req: Request, res: Response) {
         const answer = await this.bean1.getAnswer();
-        res.send(`The answer is ${answer}`);
+        res.send(answer);
       }
     }
     // WHEN
@@ -302,6 +302,6 @@ describe('ExpressBeans integration tests', () => {
     const { text } = await request(server).get('/test/answer').expect(200);
 
     // THEN
-    expect(text).toBe('The answer is 42');
+    expect(text).toBe('42');
   });
 });
