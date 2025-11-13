@@ -253,7 +253,7 @@ describe('ExpressBeans integration tests', () => {
     class RouterBean2 {
 
       @InjectBean(Bean1)
-      bean1: Bean1;
+        bean1: Bean1;
 
       @Route('GET', '/answer')
       getAnswer(_req: Request, res: Response) {
@@ -284,8 +284,9 @@ describe('ExpressBeans integration tests', () => {
 
     @RouterBean('/test')
     class RouterBean2 {
+
       @InjectBean(Bean1)
-      bean1: Bean1;
+        bean1: Bean1;
 
       @Route('GET', '/answer')
       async getAnswer(_req: Request, res: Response) {
