@@ -49,6 +49,7 @@ const isRoute = (args: unknown[]): args is [Request, Response] => {
 
 /**
  * Caches the result of a method
+ * or the response of a route handler using Response.send
  * @param options {Cache}
  * @decorator
  */

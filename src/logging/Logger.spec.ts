@@ -21,7 +21,15 @@ describe('Logger.ts', () => {
     createLogger('test-scope');
 
     // THEN
-    expect(pino).toHaveBeenCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
+    expect(pino).toHaveBeenCalledWith({
+      msgPrefix: '[test-scope] ',
+      'transport': {
+        'options': {
+          'colorize': true,
+        },
+        'target': 'pino-pretty',
+      },
+    });
     expect(pinoMock.level).toBe('debug');
   });
 
@@ -36,7 +44,19 @@ describe('Logger.ts', () => {
     createLogger('test-scope');
 
     // THEN
-    expect(pino).toHaveBeenCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
+    expect(pino).toHaveBeenCalledWith({
+      msgPrefix: '[test-scope] ',
+      'redact': {
+        'censor': '****',
+        'paths': [
+          'req.headers.authorization',
+          'req.headers.cookie',
+          'req.headers["x-api-key"]',
+          'req.headers["x-access-token"]',
+          'res.headers.set-cookie',
+        ],
+      },
+    });
     expect(pinoMock.level).toBe('info');
   });
 });
