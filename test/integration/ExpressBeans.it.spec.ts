@@ -305,4 +305,71 @@ describe('ExpressBeans integration tests', () => {
     // THEN
     expect(text).toBe('42');
   });
+
+  test('Getting field from a proxied bean', async () => {
+    // GIVEN
+    @Bean
+    class Bean1 {
+      answer = 42;
+    }
+
+    @RouterBean('/test')
+    class RouterBean2 {
+
+      @InjectBean(Bean1)
+        bean1: Bean1;
+
+      @Route('GET', '/answer')
+      getAnswer(_req: Request, res: Response) {
+        res.send(this.bean1.answer);
+      }
+    }
+    // WHEN
+    application = new ExpressBeans({ listen: false, routerBeans: [RouterBean2] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    const { text } = await request(server).get('/test/answer').expect(200);
+
+    // THEN
+    expect(text).toBe('42');
+  });
+
+  test('Getting field from a proxied bean [dep chain]', async () => {
+    // GIVEN
+    @Bean
+    class Bean1 {
+      answer = 42;
+    }
+
+    @Bean
+    class Bean2 {
+
+      @InjectBean(Bean1)
+        bean1: Bean1;
+    }
+
+    @RouterBean('/test')
+    class RouterBean3 {
+
+      @InjectBean(Bean2)
+        bean2: Bean2;
+
+      @Route('GET', '/answer')
+      getAnswer(_req: Request, res: Response) {
+        res.send(this.bean2.bean1.answer);
+      }
+    }
+    // WHEN
+    application = new ExpressBeans({ listen: false, routerBeans: [RouterBean3] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    const { text } = await request(server).get('/test/answer').expect(200);
+
+    // THEN
+    expect(text).toBe('42');
+  });
 });
