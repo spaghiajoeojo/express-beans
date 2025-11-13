@@ -125,19 +125,31 @@ mySetupFunction() {
 }
 ```
 Every request received will be served only after the application is initialized and `@Setup` functions are executed.
-process.emit('beforeExit', Number(code)
 ### Shutdown
 You can use the `@Shutdown` hook to add a function that will be executed right before the application is shutdown.
-
-### Order
-You can use the `@Order` hook to set the execution order of a hook. The default order is 0, negative orders are executed before positive ones in the same phase.
-
 ```ts
 @Shutdown
 myShutdownFunction() {
   // do something
 }
 ```
+
+### Order
+You can use the `@Order` hook to set the execution order of a hook. The default order is 0, negative orders are executed before positive ones in the same phase.
+
+```ts
+@Order(1)
+@Setup
+secondExecution() {
+  // do something
+}
+@Order(-1)
+@Setup
+firstExecution() {
+  // do something
+}
+```
+
 
 ## Springboot like annotations
 If you want to use Springboot like annotations you can use the following aliases:

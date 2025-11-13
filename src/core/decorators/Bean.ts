@@ -35,10 +35,10 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
       }
       return t[p];
     },
-    getMapper: (t: any, p: string) => {
+    getMapper: (_t: any, p: string) => {
       const mapper = mappers.get(p);
       if (mapper) {
-        return mapper(t);
+        return mapper;
       }
       return (...args: unknown[]) => {
         return args;
@@ -53,13 +53,19 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
         if (preComputedMethods.has(prop)) {
           return preComputedMethods.get(prop);
         }
-        const handler = async (...args: unknown[]) => {
-          const result = await Promise.resolve(handlerConfig.getInterceptor(targetProxy, prop as string).apply(targetProxy, args));
-          const mapped = handlerConfig.getMapper(targetProxy, String(prop))(result);
-          return mapped;
+        const methodName = String(prop);
+        let handlerFunction;
+
+        handlerFunction = (...args: unknown[]) => {
+          const result = handlerConfig.getInterceptor(targetProxy, methodName).apply(targetProxy, args);
+          if (result instanceof Promise) {
+            return result.then(res => handlerConfig.getMapper(targetProxy, methodName)(res));
+          }
+          return handlerConfig.getMapper(targetProxy, methodName)(result);
         };
-        preComputedMethods.set(prop, handler);
-        return handler;
+
+        preComputedMethods.set(prop, handlerFunction);
+        return handlerFunction;
       }
       return targetProxy[prop];
     }

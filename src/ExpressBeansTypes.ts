@@ -31,6 +31,12 @@ export declare type HTTPMethod =
   'TRACE' |
   'PATCH';
 
+/**
+ * Cache options
+ * @interface Cache
+ * @property {number} duration - Duration of the cache in milliseconds
+ * @property {'memory'} [type] - Type of cache
+ */
 export declare type Cache = {
   type?: 'memory',
   duration: number,
