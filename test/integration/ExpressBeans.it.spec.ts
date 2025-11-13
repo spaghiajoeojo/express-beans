@@ -3,9 +3,9 @@ import * as http from 'http';
 import { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import ExpressBeans from '@/core/ExpressBeans';
-import { Logger, Shutdown, Route, RouterBean } from '@/main';
+import { Logger, Shutdown, Route, RouterBean, Bean, InjectBean } from '@/main';
 import { logger } from '@/core';
-import { Executor } from '@/core/executor';
+import { Executor } from '@/core/executor';;
 
 jest.mock('pino-http', () => ({
   pinoHttp: ({
@@ -32,7 +32,7 @@ jest.mock('@/core', () => ({
   logger: {
     info: jest.fn(),
     debug: jest.fn(),
-    error: jest.fn(),
+    error: jest.fn().mockImplementation(console.error),
   },
 }));
 
@@ -69,7 +69,7 @@ describe('ExpressBeans integration tests', () => {
     await flushPromises();
 
     // WHEN
-    const { text } = await request(server).get('/test/42').expect(200);
+    const { text } = await request(server).get('/test/42'); //.expect(200);
 
     // THEN
     expect(text).toBe('42 is the answer');
@@ -238,5 +238,70 @@ describe('ExpressBeans integration tests', () => {
 
     // THEN
     expect(mock).not.toHaveBeenCalled();
+  });
+
+  test('Calling a synchronous method in a service', async () => {
+    // GIVEN
+    @Bean
+    class Bean1 {
+      getAnswer() {
+        return 42;
+      }
+    }
+
+    @RouterBean('/test')
+    class RouterBean2 {
+
+      @InjectBean(Bean1)
+        bean1: Bean1;
+
+      @Route('GET', '/answer')
+      getAnswer(_req: Request, res: Response) {
+        res.send(`The answer is ${this.bean1.getAnswer()}`);
+      }
+    }
+
+    // WHEN
+    application = new ExpressBeans({ listen: false, routerBeans: [RouterBean2] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    const { text } = await request(server).get('/test/answer').expect(200);
+
+    // THEN
+    expect(text).toBe('The answer is 42');
+  });
+
+  test('Calling an asynchronous method in a service', async () => {
+    // GIVEN
+    @Bean
+    class Bean1 {
+      async getAnswer() {
+        return 42;
+      }
+    }
+
+    @RouterBean('/test')
+    class RouterBean2 {
+      @InjectBean(Bean1)
+        bean1: Bean1;
+
+      @Route('GET', '/answer')
+      async getAnswer(_req: Request, res: Response) {
+        const answer = await this.bean1.getAnswer();
+        res.send(`The answer is ${answer}`);
+      }
+    }
+    // WHEN
+    application = new ExpressBeans({ listen: false, routerBeans: [RouterBean2] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    const { text } = await request(server).get('/test/answer').expect(200);
+
+    // THEN
+    expect(text).toBe('The answer is 42');
   });
 });

@@ -1,5 +1,5 @@
 import pino from 'pino';
-import Logger from '@/logging/Logger';
+import { createLogger } from '@/logging/Logger';
 import Mock = jest.Mock;
 
 jest.mock('pino');
@@ -18,10 +18,18 @@ describe('Logger.ts', () => {
     pinoConstructor.mockReturnValue(pinoMock);
 
     // WHEN
-    Logger('test-scope');
+    createLogger('test-scope');
 
     // THEN
-    expect(pino).toHaveBeenCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
+    expect(pino).toHaveBeenCalledWith({
+      msgPrefix: '[test-scope] ',
+      'transport': {
+        'options': {
+          'colorize': true,
+        },
+        'target': 'pino-pretty',
+      },
+    });
     expect(pinoMock.level).toBe('debug');
   });
 
@@ -33,10 +41,22 @@ describe('Logger.ts', () => {
     pinoConstructor.mockReturnValue(pinoMock);
 
     // WHEN
-    Logger('test-scope');
+    createLogger('test-scope');
 
     // THEN
-    expect(pino).toHaveBeenCalledWith({ msgPrefix: '[test-scope] ' }, undefined);
+    expect(pino).toHaveBeenCalledWith({
+      msgPrefix: '[test-scope] ',
+      'redact': {
+        'censor': '****',
+        'paths': [
+          'req.headers.authorization',
+          'req.headers.cookie',
+          'req.headers["x-api-key"]',
+          'req.headers["x-access-token"]',
+          'res.headers.set-cookie',
+        ],
+      },
+    });
     expect(pinoMock.level).toBe('info');
   });
 });

@@ -46,6 +46,115 @@ describe('Order.ts', () => {
     expect(mock).toHaveBeenCalled();
   });
 
+  it('sets an async hook order', async () => {
+    // GIVEN
+    const mock = jest.fn();
+
+    class Class {
+      @Setup
+      @Order(1)
+      async init() {
+        mock();
+      }
+    }
+
+    // WHEN
+    const bean: any = new Class();
+    registeredMethods.set(bean.init, bean);
+    registeredBeans.set('Class', bean);
+    await flushPromises();
+    await Executor.execute();
+
+    // THEN
+    expect(Executor.getTask(bean.init)?.order)
+      .toBe(1);
+    expect(mock).toHaveBeenCalled();
+  });
+
+  it.each([
+    [1, 2, ['mock1', 'mock2']],
+    [2, 1, ['mock2', 'mock1']],
+  ])('executes hooks in order %#', async (order1, order2, expected) => {
+    // GIVEN
+    const execution: string[] = [];
+    const mock1 = jest.fn().mockImplementation(() => {
+      execution.push('mock1');
+    });
+    const mock2 = jest.fn().mockImplementation(() => {
+      execution.push('mock2');
+    });
+
+    class Class {
+      @Setup
+      @Order(order1)
+      init1() {
+        mock1();
+      }
+
+      @Setup
+      @Order(order2)
+      init2() {
+        mock2();
+      }
+    }
+
+    // WHEN
+    const bean: any = new Class();
+    registeredMethods.set(bean.init1, bean);
+    registeredMethods.set(bean.init2, bean);
+    registeredBeans.set('Class', bean);
+    await flushPromises();
+    await Executor.execute();
+
+    // THEN
+    expect(mock1).toHaveBeenCalled();
+    expect(mock2).toHaveBeenCalled();
+    expect(execution).toEqual(expected);
+  });
+
+  it.each([
+    [1, 2, ['mock1', 'mock2']],
+    [2, 1, ['mock2', 'mock1']],
+  ])('executes async hooks in order %#', async (order1, order2, expected) => {
+    // GIVEN
+    const execution: string[] = [];
+    const mock1 = jest.fn().mockImplementation(async () => {
+      await flushPromises();
+      execution.push('mock1');
+    });
+    const mock2 = jest.fn().mockImplementation(async () => {
+      await flushPromises();
+      execution.push('mock2');
+    });
+
+    class Class {
+      @Setup
+      @Order(order1)
+      async init1() {
+        await mock1();
+      }
+
+      @Setup
+      @Order(order2)
+      async init2() {
+        await mock2();
+      }
+    }
+
+    // WHEN
+    const bean: any = new Class();
+    registeredMethods.set(bean.init1, bean);
+    registeredMethods.set(bean.init2, bean);
+    registeredBeans.set('Class', bean);
+    await flushPromises();
+    await Executor.execute();
+
+    // THEN
+    expect(mock1).toHaveBeenCalled();
+    expect(mock2).toHaveBeenCalled();
+    expect(execution).toEqual(expected);
+  });
+
   it('sets a default order', async () => {
     // GIVEN
     const mock = jest.fn();

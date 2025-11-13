@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 import { Cache } from '@/ExpressBeansTypes';
 import { logger, registeredMethods } from '@/core';
+import type { Request, Response } from 'express';
+import { Executor } from '@/core/executor';
 
 type BeanFunction = (...args: any) => any
 type CacheEntry = {
@@ -24,8 +26,30 @@ const getCachedData = (cache: Map<string, CacheEntry>, key: string) => {
   return cached;
 };
 
+const isRoute = (args: unknown[]): args is [Request, Response] => {
+  if (args.length !== 2) {
+    return false;
+  }
+  const potentialReq = args[0] as any;
+  const potentialRes = args[1] as any;
+
+  return (
+    potentialReq &&
+    typeof potentialReq === 'object' &&
+    'url' in potentialReq &&
+    'method' in potentialReq &&
+    'params' in potentialReq &&
+    'query' in potentialReq &&
+    potentialRes &&
+    typeof potentialRes === 'object' &&
+    'send' in potentialRes &&
+    'json' in potentialRes
+  );
+};
+
 /**
  * Caches the result of a method
+ * or the response of a route handler using Response.send
  * @param options {Cache}
  * @decorator
  */
@@ -37,24 +61,63 @@ export function Cached<This>(
     context: ClassMethodDecoratorContext<This, BeanFunction>,
   ) => {
     logger.debug(`Initializing cache for method ${String(context.name)}`);
+
     const cache = new Map<string, CacheEntry>();
-    return (...args: any) => {
-      const key = createKey(args);
-      let result;
-      try {
-        result = getCachedData(cache, key);
-        logger.debug(`Returning cached data for ${key}`);
-      } catch (error) {
-        logger.debug(error);
-        const computed = method.bind(registeredMethods.get(method))(...args);
-        cache.set(key, {
-          data: computed,
-          expiration: Date.now() + options.duration,
-        });
-        return computed;
-      }
-      logger.debug(result);
-      return result.data;
-    };
+    Executor.setExecution('init', () => {
+      const bean = registeredMethods.get(method);
+      bean?._interceptors.set(context.name as string, (target: any, _prop: string) => {
+
+        return (...args: any[]) => {
+          let keyObj: any = { args };
+          if (isRoute(args)) {
+            const [req, res] = args;
+            keyObj = {
+              url: req.url,
+              method: req.method,
+              params: req.params,
+              query: req.query,
+              body: req.body,
+            };
+            const key = createKey(keyObj);
+            try {
+              const result = getCachedData(cache, key);
+              logger.debug(`Returning cached data for ${key}`);
+              return res.send(result.data);
+            } catch (error) {
+              logger.debug(error);
+
+              const originalSend = res.send.bind(res);
+              res.send = function (body: any) {
+                cache.set(key, {
+                  data: body,
+                  expiration: Date.now() + options.duration,
+                });
+                return originalSend(body);
+              };
+
+              return method.call(target, ...args);
+            }
+          } else {
+            const key = createKey(keyObj);
+            try {
+              const cached = getCachedData(cache, key);
+              logger.debug(`Cache hit for method ${String(context.name)} with key ${key}`);
+              return cached.data;
+            } catch {
+              logger.debug(`Cache miss for method ${String(context.name)} with key ${key}`);
+              const result = method.apply(target, args);
+              cache.set(key, {
+                data: result,
+                expiration: Date.now() + options.duration,
+              });
+              return result;
+            }
+          }
+        };
+
+
+      });
+    });
+    return method;
   };
 }

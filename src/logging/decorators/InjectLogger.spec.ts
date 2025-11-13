@@ -1,7 +1,7 @@
 import { flushPromises } from '@test/utils/testUtils';
 import { InjectLogger } from '@/logging/decorators/InjectLogger';
 import { Bean, Logger as PinoLogger } from '@/main';
-import Logger from '@/logging/Logger';
+import { createLogger } from '@/logging/Logger';
 
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
@@ -17,7 +17,7 @@ jest.mock('@/logging/Logger');
 describe('InjectLogger.ts', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    (Logger as jest.Mock).mockImplementation(jest.requireActual('@/logging/Logger').default);
+    (createLogger as jest.Mock).mockImplementation(jest.requireActual('@/logging/Logger').createLogger);
   });
 
   it('injects a logger', async () => {
@@ -60,6 +60,6 @@ describe('InjectLogger.ts', () => {
     // THEN
     instance.getLogger().debug('ciao');
     expect(instance.getLogger()).toBeDefined();
-    expect(Logger).toHaveBeenCalledWith('ClassBean');
+    expect(createLogger).toHaveBeenCalledWith('ClassBean');
   });
 });

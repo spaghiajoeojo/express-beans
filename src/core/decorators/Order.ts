@@ -1,17 +1,17 @@
 import { Executor } from '@/core/executor';
 
-type AnyMethod = (...args: unknown[]) => unknown;
+type AnyMethod<O = unknown> = (...args: unknown[]) => O;
 
 /**
  * Assigns an execution order to a method
  * @param order {number}
  * @decorator
  */
-export function Order<This>(
+export function Order<This, M extends AnyMethod>(
   order: number,
 ) {
   return (
-    method: AnyMethod,
+    method: M,
     _context: ClassMethodDecoratorContext<This, AnyMethod>,
   ) => {
     Executor.setExecution('register', () => {

@@ -4,6 +4,8 @@ export interface ExpressBean {
   _className: string,
   _instance: any,
   _beanUUID: string,
+  _interceptors: Map<string, (target: unknown, prop: string) => unknown>,
+  _mappers: Map<string, (original: unknown) => any>,
 }
 
 export interface ExpressRouterBean extends ExpressBean {
@@ -29,6 +31,12 @@ export declare type HTTPMethod =
   'TRACE' |
   'PATCH';
 
+/**
+ * Cache options
+ * @interface Cache
+ * @property {number} duration - Duration of the cache in milliseconds
+ * @property {'memory'} [type] - Type of cache
+ */
 export declare type Cache = {
   type?: 'memory',
   duration: number,
