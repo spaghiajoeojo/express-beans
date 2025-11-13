@@ -40,8 +40,8 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
       if (mapper) {
         return mapper;
       }
-      return (...args: unknown[]) => {
-        return args;
+      return (original: unknown) => {
+        return original;
       };
     }
   };
