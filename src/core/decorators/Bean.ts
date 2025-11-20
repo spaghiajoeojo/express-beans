@@ -6,6 +6,12 @@ const getMethods = (singleton: any) => Reflect.ownKeys(Object.getPrototypeOf(sin
   .filter((method) => method !== 'constructor')
   .map(methodName => [singleton[methodName], methodName] as const);
 
+const isFunction = (functionToCheck: any): boolean => {
+  return functionToCheck &&
+    typeof functionToCheck === 'function' &&
+    functionToCheck._beanUUID === undefined;
+};
+
 /**
  * Instantiates a new instance of the singleton and registers it
  * @decorator
@@ -49,7 +55,8 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
   const preComputedMethods = new Map<string | symbol, (...args: unknown[]) => any>();
   const singleton: any = new Proxy(instance, {
     get(targetProxy, prop) {
-      if (typeof targetProxy[prop] === 'function') {
+      const actualProp = Reflect.get(targetProxy, prop);
+      if (isFunction(actualProp)) {
         if (preComputedMethods.has(prop)) {
           return preComputedMethods.get(prop);
         }
@@ -67,7 +74,7 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
         preComputedMethods.set(prop, handlerFunction);
         return handlerFunction;
       }
-      return targetProxy[prop];
+      return actualProp;
     }
   });
   Reflect.defineProperty(singleton, '_className', {
