@@ -188,6 +188,84 @@ describe('ExpressBeans integration tests', () => {
     expect(loggerMock.info).toHaveBeenCalledWith('193.234.61.32 - "GET /test/42 HTTP/1.1" 200 - NaNms');
   });
 
+  test('applies global middleware to all requests', async () => {
+    // GIVEN
+    const middlewareMock = jest.fn((_req: Request, _res: Response, next: NextFunction) => next());
+
+    @RouterBean('/test')
+    class TestRouter {
+      @Route('GET', '/42')
+      test(_req: Request, res: Response) {
+        res.send('42 is the answer');
+      }
+    }
+    application = new ExpressBeans({ listen: false, routerBeans: [TestRouter], middlewares: [middlewareMock] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    // WHEN
+    const { text } = await request(server).get('/test/42').expect(200);
+
+    // THEN
+    expect(text).toBe('42 is the answer');
+    expect(middlewareMock).toHaveBeenCalled();
+  });
+
+  test('global middleware can reject requests before reaching the router', async () => {
+    // GIVEN
+    const authMiddleware = jest.fn((_req: Request, res: Response, _next: NextFunction) => {
+      res.status(401).send('Unauthorized');
+    });
+
+    @RouterBean('/test')
+    class TestRouter {
+      @Route('GET', '/42')
+      test(_req: Request, res: Response) {
+        res.send('42 is the answer');
+      }
+    }
+    application = new ExpressBeans({ listen: false, routerBeans: [TestRouter], middlewares: [authMiddleware] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    // WHEN
+    const { status, text } = await request(server).get('/test/42');
+
+    // THEN
+    expect(status).toBe(401);
+    expect(text).toBe('Unauthorized');
+    expect(authMiddleware).toHaveBeenCalled();
+  });
+
+  test('applies multiple global middlewares in order', async () => {
+    // GIVEN
+    const callOrder: number[] = [];
+    const middleware1 = jest.fn((_req: Request, _res: Response, next: NextFunction) => { callOrder.push(1); next(); });
+    const middleware2 = jest.fn((_req: Request, _res: Response, next: NextFunction) => { callOrder.push(2); next(); });
+
+    @RouterBean('/test')
+    class TestRouter {
+      @Route('GET', '/42')
+      test(_req: Request, res: Response) {
+        res.send('42 is the answer');
+      }
+    }
+    application = new ExpressBeans({ listen: false, routerBeans: [TestRouter], middlewares: [middleware1, middleware2] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    // WHEN
+    await request(server).get('/test/42').expect(200);
+
+    // THEN
+    expect(middleware1).toHaveBeenCalled();
+    expect(middleware2).toHaveBeenCalled();
+    expect(callOrder).toStrictEqual([1, 2]);
+  });
+
   test('Shutdown hooks on process exit', async () => {
     // GIVEN
     const mockExit = jest.spyOn(process, 'exit')
