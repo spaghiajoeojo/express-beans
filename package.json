@@ -47,6 +47,10 @@
     "beans",
     "express"
   ],
+  "overrides": {
+    "axios": "^1.18.0",
+    "js-yaml": "^4.2.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@jest/globals": "29",
@@ -58,7 +62,7 @@
     "@typescript-eslint/parser": "^8.46.4",
     "globals": "^16.5.0",
     "jest": "29",
-    "sonarqube-scanner": "4.3.2",
+    "sonarqube-scanner": "4.3.6",
     "supertest": "7.1.4",
     "ts-jest": "29",
     "ts-node": "10.9.2",

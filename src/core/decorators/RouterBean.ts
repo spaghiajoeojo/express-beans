@@ -4,6 +4,7 @@ import { Bean } from '@/core/decorators/Bean';
 /**
  * Creates an ExpressBean and a Router for this class
  * @param path {string}
+ * @param middlewares
  * @decorator
  */
 export function RouterBean(path: string, middlewares: Array<express.RequestHandler> = []) {

@@ -166,6 +166,38 @@ describe('ExpressBeans.ts', () => {
     mockExit.mockRestore();
   });
 
+  it('registers global middlewares on express app before the router', async () => {
+    // GIVEN
+    const middleware1 = jest.fn();
+    const middleware2 = jest.fn();
+
+    // WHEN
+    new ExpressBeans({ middlewares: [middleware1, middleware2] });
+
+    // THEN
+    expect(expressMock.use).toHaveBeenNthCalledWith(1, middleware1);
+    expect(expressMock.use).toHaveBeenNthCalledWith(2, middleware2);
+    expect(expressMock.use).toHaveBeenNthCalledWith(3, '/', routerMock);
+  });
+
+  it('does not register extra app.use calls when middlewares array is empty', async () => {
+    // WHEN
+    new ExpressBeans({ middlewares: [] });
+
+    // THEN
+    expect(expressMock.use).toHaveBeenCalledTimes(1);
+    expect(expressMock.use).toHaveBeenCalledWith('/', routerMock);
+  });
+
+  it('does not register extra app.use calls when middlewares option is not provided', async () => {
+    // WHEN
+    new ExpressBeans({});
+
+    // THEN
+    expect(expressMock.use).toHaveBeenCalledTimes(1);
+    expect(expressMock.use).toHaveBeenCalledWith('/', routerMock);
+  });
+
   it('accepts a list of beans', async () => {
     // GIVEN
     const bean1 = class Bean1 {};
