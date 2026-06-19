@@ -79,7 +79,6 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
    * @param listen {boolean}
    * @param port {number}
    * @param beans {Object[]}
-   * @param onInitialized {Function}
    * @private
    */
   private async initialize({
@@ -105,6 +104,7 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
   /**
    * Starts the server and emits the initialized event
    * @param {number} port
+   * @param callback
    */
   listen(port: number, callback?: (error?: Error) => void) {
     return this.app.listen(port, (error) => {

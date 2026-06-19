@@ -1,6 +1,6 @@
 import { flushPromises } from '@test/utils/testUtils';
 import { isProxy } from 'util/types';
-import { InjectBean } from '@/core/decorators/InjectBean';
+import { InjectBean, getSingleton } from '@/core/decorators/InjectBean';
 import { Executor } from '@/core/executor';
 
 jest.mock('@/core', () => ({
@@ -187,5 +187,45 @@ describe('InjectBean.ts', () => {
     expect((instance.getDep() as any)._beanUUID).toBe(T._beanUUID);
     expect(instance.getProp()).toBe('value');
     expect.assertions(3);
+  });
+});
+
+describe('getBean (getSingleton)', () => {
+  it('returns the singleton instance of a registered Bean', () => {
+    // GIVEN
+    class TypeA {
+      value = 'hello';
+    }
+    const T: any = TypeA;
+    T._beanUUID = crypto.randomUUID();
+    T._instance = new TypeA();
+    T._className = TypeA.name;
+
+    // WHEN
+    const instance = getSingleton(TypeA);
+
+    // THEN
+    expect(instance).toBe(T._instance);
+    expect((instance as any).value).toBe('hello');
+  });
+
+  it('throws an error if class is not a Bean', () => {
+    class TypeA {}
+
+    expect(() => getSingleton(TypeA)).toThrow(
+      'Cannot get instance from TypeA. Make sure that TypeA has @Bean as class decorator',
+    );
+  });
+
+  it('throws an error if argument is null', () => {
+    expect(() => getSingleton(null)).toThrow(
+      'Please specify the type of Bean. Example: @InjectBean(BeanClass)',
+    );
+  });
+
+  it('throws an error if argument has no name', () => {
+    expect(() => getSingleton({ key: 'value' })).toThrow(
+      'Cannot get instance for {"key":"value"}: it is not an ExpressBean',
+    );
   });
 });
