@@ -1,12 +1,13 @@
 export { default as ExpressBeans } from '@/core/ExpressBeans';
 export { Bean } from '@/core/decorators/Bean';
 export * as types from '@/ExpressBeansTypes';
-export { InjectBean, getSingleton as getBean } from '@/core/decorators/InjectBean';
+export { InjectBean } from '@/core/decorators/InjectBean';
 export { Route } from '@/core/decorators/Route';
 export { RouterBean } from '@/core/decorators/RouterBean';
 export { InjectLogger } from '@/logging/decorators/InjectLogger';
 export { Cached } from '@/cache/decorators/Cached';
 export { Order } from '@/core/decorators/Order';
+export { getBean } from '@/core/functions/getBean';
 export type { Logger } from 'pino';
 export { createLogger } from '@/logging/Logger';
 

@@ -11,7 +11,7 @@ function isABean(singletonClass: any) {
 
 /**
  * Returns the singleton instance of a registered Bean.
- * Can be used outside of other Beans to access any registered instance.
+ * Internal use.
  * @param singletonClass - The class decorated with @Bean
  * @returns The singleton instance of the given class
  * @throws Error if the class is not a registered Bean
