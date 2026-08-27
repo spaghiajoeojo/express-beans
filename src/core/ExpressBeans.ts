@@ -1,6 +1,6 @@
 import express, { Express, Request, Router } from 'express';
 import { pinoHttp, startTime } from 'pino-http';
-import { ServerResponse, IncomingMessage } from 'http';
+import { IncomingMessage, ServerResponse } from 'http';
 import EventEmitter from 'events';
 import { ExpressBeansOptions, ExpressRouterBean } from '@/ExpressBeansTypes';
 import { logger } from '@/core';
@@ -22,8 +22,7 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
    * @param options {ExpressBeansOptions}
    */
   static async createApp(options?: Partial<ExpressBeansOptions>): Promise<ExpressBeans> {
-    const app = new ExpressBeans({ ...options });
-    return app;
+    return new ExpressBeans({ ...options });
   }
 
   /**
@@ -36,6 +35,9 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
     this.router = express.Router();
     this.app = express();
     this.app.disable('x-powered-by');
+    for (const middleware of (options?.middlewares ?? [])) {
+      this.app.use(middleware);
+    }
     this.app.use(options?.baseURL ?? '/', this.router);
     if (options?.logRequests === undefined || options.logRequests) {
       this.router.use(pinoHttp(
@@ -77,7 +79,6 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
    * @param listen {boolean}
    * @param port {number}
    * @param beans {Object[]}
-   * @param onInitialized {Function}
    * @private
    */
   private async initialize({
@@ -103,6 +104,7 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
   /**
    * Starts the server and emits the initialized event
    * @param {number} port
+   * @param callback
    */
   listen(port: number, callback?: (error?: Error) => void) {
     return this.app.listen(port, (error) => {

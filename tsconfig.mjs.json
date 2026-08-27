@@ -3,11 +3,12 @@
     "target": "ES2023",
     "allowJs": true,
     "useDefineForClassFields": true,
-    "module": "Preserve",
+    "module": "esnext",
     "lib": [
       "ESNext"
     ],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "rootDir": "./src",
     "strict": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

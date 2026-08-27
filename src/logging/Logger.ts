@@ -1,7 +1,7 @@
 import pino from 'pino';
 
 export function createLogger(scope?: string) {
-  let options: pino.LoggerOptions = {};
+  const options: pino.LoggerOptions = {};
   if (process.env.NODE_ENV === 'production') {
     options.redact = {
       paths: [

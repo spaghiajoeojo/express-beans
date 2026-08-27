@@ -9,7 +9,14 @@ function isABean(singletonClass: any) {
   return !!singletonClass._beanUUID && !!singletonClass._instance && !!singletonClass._className;
 }
 
-function getSingleton<T>(singletonClass: T): T {
+/**
+ * Returns the singleton instance of a registered Bean.
+ * Can be used outside of other Beans to access any registered instance.
+ * @param singletonClass - The class decorated with @Bean
+ * @returns The singleton instance of the given class
+ * @throws Error if the class is not a registered Bean
+ */
+export function getSingleton<T>(singletonClass: T): T {
   if (!singletonClass) {
     throw new Error('Please specify the type of Bean. Example: @InjectBean(BeanClass)');
   }

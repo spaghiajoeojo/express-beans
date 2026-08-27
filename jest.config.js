@@ -1,4 +1,4 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+/** @type {import('jest').Config} */
 export default {
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
   coveragePathIgnorePatterns: ['<rootDir>/test/utils'],
@@ -9,9 +9,28 @@ export default {
   },
   transform: {
     '^.+\\.[tj]sx?$': [
-      'ts-jest',
+      '@swc/jest',
       {
-        tsconfig: 'tsconfig.test.json',
+        jsc: {
+          parser: {
+            syntax: 'typescript',
+            tsx: false,
+            decorators: true,
+            dynamicImport: true,
+          },
+          target: 'es2015',
+          transform: {
+            useDefineForClassFields: true,
+            legacyDecorator: false,
+            decoratorMetadata: false,
+            decoratorVersion: '2022-03',
+          },
+          keepClassNames: true,
+        },
+        module: {
+          type: 'commonjs',
+        },
+        sourceMaps: true,
       },
     ],
   },

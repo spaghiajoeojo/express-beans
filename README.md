@@ -151,6 +151,17 @@ firstExecution() {
 ```
 
 
+## getBean
+You can use `getBean` to retrieve a Bean instance outside of another Bean:
+
+```ts
+import { getBean } from 'express-beans';
+import { ExampleService } from './services/ExampleService';
+
+const service = getBean(ExampleService);
+service.example();
+```
+
 ## Springboot like annotations
 If you want to use Springboot like annotations you can use the following aliases:
 
