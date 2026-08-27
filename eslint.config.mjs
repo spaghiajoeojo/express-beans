@@ -1,31 +1,24 @@
 import js from '@eslint/js';
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
-import typescriptParser from '@typescript-eslint/parser';
+import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import { defineConfig } from 'eslint/config';
 
-export default [
+export default defineConfig([
+  tseslint.configs.recommended,
   {
-    ignores: ['node_modules/**'],
+    ignores: ['node_modules/**', 'dist', 'docs', 'coverage'],
   },
   {
     files: ['**/*.{js,mjs,cjs,ts,tsx}'],
     languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-      },
       globals: {
         ...globals.node,
         crypto: true,
       },
     },
-    plugins: {
-      '@typescript-eslint': typescriptEslint,
-    },
     rules: {
       ...js.configs.recommended.rules,
-      ...typescriptEslint.configs.recommended.rules,
+      ...tseslint.configs.recommended.rules,
       'indent': ['error', 2],
       'linebreak-style': ['error', 'unix'],
       'quotes': ['error', 'single'],
@@ -53,4 +46,4 @@ export default [
       },
     },
   },
-];
+]);

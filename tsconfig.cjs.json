@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ES2020",
     "allowJs": true,
     "useDefineForClassFields": true,
-    "module": "CommonJS",
-    "lib": [
-      "ESNext"
-    ],
-    "moduleResolution": "node",
+    "module": "commonjs",
+    "lib": ["ESNext"],
+    "moduleResolution": "bundler",
+    "rootDir": "./src",
     "strict": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -24,24 +23,13 @@
     "outDir": "dist/cjs",
     "declarationDir": "dist/types",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
-    "types": [
-      "node"
-    ],
-    "typeRoots": [
-      "./node_modules/@types"
-    ]
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts",
-  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"],
   "tsc-alias": {
     "resolveFullPaths": true,
     "verbose": false

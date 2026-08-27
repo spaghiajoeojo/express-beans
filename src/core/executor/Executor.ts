@@ -44,7 +44,7 @@ class ExecutorImpl extends EventEmitter<ExecutorEventMap> {
  * @param phase {ExecutorPhase} phase in which the task should be executed
  */
   setExecution(phase: ExecutorPhase, taskFn: () => Promise<void> | void, contextKey?: any, order = 0) {
-    let phaseTasks = this.tasks.get(phase) ?? [];
+    const phaseTasks = this.tasks.get(phase) ?? [];
     const task = new Task({ task: taskFn, phase, order });
     if (contextKey) {
       this.taskMap.set(contextKey, task);

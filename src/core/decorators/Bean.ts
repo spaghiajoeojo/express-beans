@@ -61,9 +61,7 @@ export function Bean(target: any, _context: ClassDecoratorContext) {
           return preComputedMethods.get(prop);
         }
         const methodName = String(prop);
-        let handlerFunction;
-
-        handlerFunction = (...args: unknown[]) => {
+        const handlerFunction = (...args: unknown[]) => {
           const result = handlerConfig.getInterceptor(targetProxy, methodName).apply(targetProxy, args);
           if (result instanceof Promise) {
             return result.then(res => handlerConfig.getMapper(targetProxy, methodName)(res));
