@@ -1,6 +1,6 @@
 {
   "name": "express-beans",
-  "version": "3.2.3",
+  "version": "3.3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/spaghiajoeojo/express-beans.git"
@@ -12,8 +12,13 @@
     "build": "npm run build:cjs && npm run build:mjs",
     "build:cjs": "tsc -p tsconfig.cjs.json && tsc-alias -p tsconfig.cjs.json",
     "build:mjs": "tsc -p tsconfig.mjs.json && tsc-alias -p tsconfig.mjs.json",
+    "postbuild:cjs": "npm run add-package-json-override",
+    "postbuild:mjs": "npm run add-package-json-override-mjs",
+    "add-package-json-override": "echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
+    "add-package-json-override-mjs": "echo '{\"type\":\"module\"}' > dist/mjs/package.json",
     "lint": "eslint --ignore-pattern='.gitignore' src test",
     "test": "jest --runInBand",
+    "typecheck": "tsc --noEmit",
     "coverage": "jest --runInBand --coverage",
     "generate:docs": "typedoc --out docs src/main.ts",
     "sonar": "sonar-scanner",
@@ -27,13 +32,13 @@
   "module": "./dist/mjs/main.js",
   "exports": {
     ".": {
+      "types": "./dist/types/main.d.ts",
       "import": "./dist/mjs/main.js",
-      "require": "./dist/cjs/main.js",
-      "types": "./dist/types/main.d.ts"
+      "require": "./dist/cjs/main.js"
     },
     "./cjs": {
-      "require": "./dist/cjs/main.js",
-      "types": "./dist/types/main.d.ts"
+      "types": "./dist/types/main.d.ts",
+      "require": "./dist/cjs/main.js"
     }
   },
   "types": "./dist/types/main.d.ts",
@@ -47,34 +52,38 @@
     "beans",
     "express"
   ],
+  "overrides": {
+    "axios": "^1.18.0",
+    "js-yaml": "^4.2.0"
+  },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@jest/globals": "29",
-    "@types/express": "5.0.5",
-    "@types/jest": "29",
-    "@types/node": "22",
-    "@types/supertest": "6.0.3",
-    "@typescript-eslint/eslint-plugin": "^8.46.4",
-    "@typescript-eslint/parser": "^8.46.4",
-    "globals": "^16.5.0",
-    "jest": "29",
-    "sonarqube-scanner": "4.3.2",
-    "supertest": "7.1.4",
-    "ts-jest": "29",
+    "@eslint/js": "^10.0.1",
+    "@jest/globals": "30",
+    "@swc/core": "^1.16.1",
+    "@swc/jest": "^0.2.39",
+    "@types/express": "5.0.6",
+    "@types/jest": "30",
+    "@types/node": "26",
+    "@types/supertest": "7.2.1",
+    "globals": "^17.11.0",
+    "jest": "30",
+    "sonarqube-scanner": "5.0.0",
+    "supertest": "7.2.2",
     "ts-node": "10.9.2",
-    "tsc-alias": "1.8.16",
+    "tsc-alias": "1.9.2",
     "tsconfig-paths": "4.2.0",
     "tslib": "2.8.1",
-    "typedoc": "0.28.14",
-    "typescript": "5.9.3"
+    "typedoc": "0.28.20",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.68.0"
   },
   "dependencies": {
-    "express": "5.1.0",
-    "pino": "10.1.0",
-    "pino-http": "10.5.0",
-    "pino-pretty": "13.1.2"
+    "express": "5.2.1",
+    "pino": "10.3.1",
+    "pino-http": "11.0.0",
+    "pino-pretty": "13.1.3"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0"
   }
 }

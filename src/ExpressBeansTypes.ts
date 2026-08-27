@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 
 export interface ExpressBean {
   _className: string,
@@ -17,7 +17,8 @@ export interface ExpressBeansOptions {
   port: number,
   routerBeans: Array<any>,
   logRequests?: boolean,
-  baseURL?: string
+  baseURL?: string,
+  middlewares: Array<express.RequestHandler>,
 }
 
 export declare type HTTPMethod =
