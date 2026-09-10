@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+import pino from 'pino';
 
 export interface ExpressBean {
   _className: string,
@@ -19,6 +20,7 @@ export interface ExpressBeansOptions {
   logRequests?: boolean,
   baseURL?: string,
   middlewares: Array<express.RequestHandler>,
+  frameworkLogLevel: pino.LevelWithSilentOrString
 }
 
 export declare type HTTPMethod =

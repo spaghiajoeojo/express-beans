@@ -3,12 +3,8 @@ import { Cache } from '@/ExpressBeansTypes';
 import { logger, registeredMethods } from '@/core';
 import type { Request, Response } from 'express';
 import { Executor } from '@/core/executor';
-
-type BeanFunction = (...args: any) => any
-type CacheEntry = {
-  data: ReturnType<BeanFunction>,
-  expiration: number,
-}
+import { caches } from '@/cache';
+import { BeanFunction, CacheEntry } from '@/cache/types';
 
 const createKey = (obj: any) => createHash('sha224')
   .update(JSON.stringify(obj))
@@ -16,10 +12,10 @@ const createKey = (obj: any) => createHash('sha224')
 
 const getCachedData = (cache: Map<string, CacheEntry>, key: string) => {
   const cached = cache.get(key);
-  if (!cached) {
+  if ( !cached ) {
     throw new Error(`Key ${key} not found in cache`);
   }
-  if (cached.expiration < Date.now()) {
+  if ( cached.expiration < Date.now() ) {
     cache.delete(key);
     throw new Error(`Key ${key} expired in cache`);
   }
@@ -27,7 +23,7 @@ const getCachedData = (cache: Map<string, CacheEntry>, key: string) => {
 };
 
 const isRoute = (args: unknown[]): args is [Request, Response] => {
-  if (args.length !== 2) {
+  if ( args.length !== 2 ) {
     return false;
   }
   const potentialReq = args[0] as any;
@@ -54,7 +50,10 @@ const isRoute = (args: unknown[]): args is [Request, Response] => {
  * @decorator
  */
 export function Cached<This>(
-  options: Cache = { duration: 60_000, type: 'memory' },
+  options: Cache = {
+    duration: 60_000,
+    type: 'memory'
+  },
 ) {
   return (
     method: BeanFunction,
@@ -63,13 +62,14 @@ export function Cached<This>(
     logger.debug(`Initializing cache for method ${String(context.name)}`);
 
     const cache = new Map<string, CacheEntry>();
+    caches.set(context.name, cache);
     Executor.setExecution('init', () => {
       const bean = registeredMethods.get(method);
       bean?._interceptors.set(context.name as string, (target: any, _prop: string) => {
 
         return (...args: any[]) => {
           let keyObj: any = { args };
-          if (isRoute(args)) {
+          if ( isRoute(args) ) {
             const [req, res] = args;
             keyObj = {
               url: req.url,
@@ -83,7 +83,7 @@ export function Cached<This>(
               const result = getCachedData(cache, key);
               logger.debug(`Returning cached data for ${key}`);
               return res.send(result.data);
-            } catch (error) {
+            } catch ( error ) {
               logger.debug(error);
 
               const originalSend = res.send.bind(res);
@@ -114,7 +114,6 @@ export function Cached<This>(
             }
           }
         };
-
 
       });
     });

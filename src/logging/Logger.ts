@@ -1,8 +1,8 @@
 import pino from 'pino';
 
-export function createLogger(scope?: string) {
+export function createLogger(scope?: string, overrideLevel?: pino.LevelWithSilentOrString) {
   const options: pino.LoggerOptions = {};
-  if (process.env.NODE_ENV === 'production') {
+  if ( process.env.NODE_ENV === 'production' ) {
     options.redact = {
       paths: [
         'req.headers.authorization',
@@ -28,7 +28,12 @@ export function createLogger(scope?: string) {
       ...options,
     },
   );
-  switch (process.env.NODE_ENV) {
+  if ( overrideLevel ) {
+    logger.level = overrideLevel;
+    return logger;
+  }
+
+  switch ( process.env.NODE_ENV ) {
   case 'production':
     logger.level = 'info';
     break;

@@ -3,7 +3,9 @@ import * as http from 'http';
 import { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import ExpressBeans from '@/core/ExpressBeans';
-import { Cached, Logger, Route, RouterBean } from '@/main';
+import {
+  Bean, Cached, InjectBean, InvalidateCache, Logger, Route, RouterBean,
+} from '@/main';
 import { Executor } from '@/core/executor';
 import { randomUUID } from 'crypto';
 
@@ -73,5 +75,87 @@ describe('Cache integration tests', () => {
     // THEN
     expect(text1).toBe(text2);
 
+  });
+
+  test('cache is invalidated by a route decorated with InvalidateCache', async () => {
+    // GIVEN
+    @RouterBean('/test')
+    class TestRouter {
+      @Cached()
+      @Route('GET', '/42')
+      test(_req: Request, res: Response) {
+        res.send(randomUUID());
+      }
+
+      @InvalidateCache('test')
+      @Route('POST', '/42')
+      invalidate(_req: Request, res: Response) {
+        res.send('invalidated');
+      }
+    }
+    application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    // WHEN
+    const { text: text1 } = await request(server).get('/test/42');
+    const { text: text2 } = await request(server).get('/test/42');
+    await request(server).post('/test/42').expect(200);
+    const { text: text3 } = await request(server).get('/test/42');
+
+    await flushPromises();
+
+    // THEN
+    expect(text1).toBe(text2);
+    expect(text3).not.toBe(text1);
+  });
+
+  test('cache is invalidated across beans through dependency injection', async () => {
+    // GIVEN
+    @Bean
+    class CacheOwnerBean {
+      @Cached()
+      getUUIDCached() {
+        return randomUUID();
+      }
+
+      @InvalidateCache('getUUIDCached')
+      invalidate() {
+        return 'invalidated';
+      }
+    }
+
+    @RouterBean('/test')
+    class TestRouter {
+      @InjectBean(CacheOwnerBean)
+        cacheOwnerBean: CacheOwnerBean;
+
+      @Route('GET', '/cached')
+      getCached(_req: Request, res: Response) {
+        res.send(this.cacheOwnerBean.getUUIDCached());
+      }
+
+      @Route('POST', '/invalidate')
+      invalidate(_req: Request, res: Response) {
+        res.send(this.cacheOwnerBean.invalidate());
+      }
+    }
+    application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    // WHEN
+    const { text: text1 } = await request(server).get('/test/cached').expect(200);
+    const { text: text2 } = await request(server).get('/test/cached').expect(200);
+    await request(server).post('/test/invalidate').expect(200);
+    const { text: text3 } = await request(server).get('/test/cached').expect(200);
+
+    await flushPromises();
+
+    // THEN
+    expect(text1).toBe(text2);
+    expect(text3).not.toBe(text1);
   });
 });
