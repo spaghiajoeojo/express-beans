@@ -1,8 +1,8 @@
 import pino from 'pino';
 
-export function createLogger(scope?: string) {
+export function createLogger(scope?: string, overrideLevel?: pino.LevelWithSilentOrString) {
   const options: pino.LoggerOptions = {};
-  if (process.env.NODE_ENV === 'production') {
+  if ( process.env.NODE_ENV === 'production' ) {
     options.redact = {
       paths: [
         'req.headers.authorization',
@@ -13,7 +13,10 @@ export function createLogger(scope?: string) {
       ],
       censor: '****',
     };
-  } else {
+  } else if ( process.env.NODE_ENV !== 'test' ) {
+    // pino-pretty spawns a worker thread: skip it under test (NODE_ENV === 'test',
+    // Jest's default) so a real logger doesn't leave a dangling handle that keeps
+    // the process alive after the test run completes.
     options.transport = {
       target: 'pino-pretty',
       options: {
@@ -28,7 +31,12 @@ export function createLogger(scope?: string) {
       ...options,
     },
   );
-  switch (process.env.NODE_ENV) {
+  if ( overrideLevel ) {
+    logger.level = overrideLevel;
+    return logger;
+  }
+
+  switch ( process.env.NODE_ENV ) {
   case 'production':
     logger.level = 'info';
     break;

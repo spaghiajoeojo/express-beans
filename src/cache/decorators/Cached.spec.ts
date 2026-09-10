@@ -1,7 +1,9 @@
 import { randomUUID } from 'crypto';
 import { Cached } from '@/cache/decorators/Cached';
+import { caches } from '@/cache';
 import { registeredBeans, registeredMethods } from '@/core';
 import { Executor } from '@/core/executor';
+import { isError } from '@/core/errors';
 
 jest.mock('@/core', () => ({
   registeredBeans: new Map(),
@@ -24,10 +26,11 @@ const createProxy = (actualBean: any) => new Proxy(actualBean, {
 });
 
 describe('Cached.ts', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.resetAllMocks();
     registeredMethods.clear();
     registeredBeans.clear();
+    await Executor.stopLifecycle();
   });
 
   it('execute a cached function', async () => {
@@ -151,5 +154,47 @@ describe('Cached.ts', () => {
 
     // THEN
     expect(bean.getUUIDCached()).not.toStrictEqual(resultCache);
+  });
+
+  it('registers the cache under a custom name when provided', async () => {
+    // GIVEN
+    class Class {
+      @Cached({ duration: 60_000, name: 'customCacheName' })
+      getUUIDCached() {
+        return randomUUID();
+      }
+    }
+    const bean = createProxy(new Class());
+    (bean as any)._interceptors = new Map();
+    registeredBeans.set('Class', bean as any);
+    registeredMethods.set(bean.getUUIDCached, bean as any);
+    await Executor.execute();
+
+    // WHEN
+    bean.getUUIDCached();
+
+    // THEN
+    expect(caches.has('customCacheName')).toBe(true);
+  });
+
+  it('fails the init phase when the owning bean is not registered', async () => {
+    // GIVEN
+    class Class {
+      @Cached()
+      getUUIDCached() {
+        return randomUUID();
+      }
+    }
+    createProxy(new Class());
+    // intentionally not registering the bean/method mapping
+    Executor.once('error', () => {});
+
+    // WHEN
+    const results = await Executor.execute();
+
+    // THEN
+    expect(
+      results.some((result) => isError(result) && result.error.message.includes('Bean not found')),
+    ).toBe(true);
   });
 });

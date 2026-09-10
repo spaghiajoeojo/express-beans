@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+import pino from 'pino';
 
 export interface ExpressBean {
   _className: string,
@@ -19,6 +20,7 @@ export interface ExpressBeansOptions {
   logRequests?: boolean,
   baseURL?: string,
   middlewares: Array<express.RequestHandler>,
+  frameworkLogLevel: pino.LevelWithSilentOrString
 }
 
 export declare type HTTPMethod =
@@ -37,8 +39,10 @@ export declare type HTTPMethod =
  * @interface Cache
  * @property {number} duration - Duration of the cache in milliseconds
  * @property {'memory'} [type] - Type of cache
+ * @property {string | symbol} [name] - Explicit cache identifier, needed to invalidate this cache from a different bean via `@InvalidateCache`
  */
 export declare type Cache = {
   type?: 'memory',
   duration: number,
+  name?: string | symbol
 }

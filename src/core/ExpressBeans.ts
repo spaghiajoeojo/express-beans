@@ -32,14 +32,15 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
    */
   constructor(options?: Partial<ExpressBeansOptions>) {
     super();
+    logger.level = options?.frameworkLogLevel ?? 'info';
     this.router = express.Router();
     this.app = express();
     this.app.disable('x-powered-by');
-    for (const middleware of (options?.middlewares ?? [])) {
+    for ( const middleware of (options?.middlewares ?? []) ) {
       this.app.use(middleware);
     }
     this.app.use(options?.baseURL ?? '/', this.router);
-    if (options?.logRequests === undefined || options.logRequests) {
+    if ( options?.logRequests === undefined || options.logRequests ) {
       this.router.use(pinoHttp(
         {
           logger,
@@ -59,7 +60,11 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
   private serializeRequest(req: IncomingMessage, res: ServerResponse) {
     const request: Request = req as Request;
     const remoteAddress = request.headers['x-forwarded-for'] ?? request.socket.remoteAddress;
-    const { method, originalUrl, httpVersion } = request;
+    const {
+      method,
+      originalUrl,
+      httpVersion
+    } = request;
     const responseTime = Date.now() - res[startTime];
     const optionals = [
       res.statusCode,
@@ -90,7 +95,7 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
       .then(this.checkRouterBeans.bind(this))
       .then(this.registerRouters.bind(this))
       .then(() => {
-        if (listen) {
+        if ( listen ) {
           return new Promise<void>(
             (resolve, reject) => {
               this.listen(port, (err) => (err ? reject(err) : resolve()));
@@ -108,7 +113,7 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
    */
   listen(port: number, callback?: (error?: Error) => void) {
     return this.app.listen(port, (error) => {
-      if (error) {
+      if ( error ) {
         callback?.(error);
         this.emit('error', error);
         return;
@@ -135,7 +140,7 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
             } = instance._routerConfig;
             logger.debug(`Registering router ${instance._className}`);
             this.router.use(path, router);
-          } catch (e) {
+          } catch ( e ) {
             logger.error(e);
             reject(new Error(`Router ${instance._className} not initialized correctly`, { cause: e }));
           }
@@ -152,11 +157,11 @@ export default class ExpressBeans extends EventEmitter<ExpressBeanEventMap> {
    * @private
    */
   private async checkRouterBeans(routerBeans: Array<ExpressRouterBean>):
-  Promise<ExpressRouterBean[]> {
+    Promise<ExpressRouterBean[]> {
     const invalidBeans = routerBeans
       .filter(((bean) => !bean._beanUUID))
       .map((object: any) => object.prototype.constructor.name);
-    if (invalidBeans.length > 0) {
+    if ( invalidBeans.length > 0 ) {
       return Promise.reject(new Error(`Trying to use something that is not an ExpressBean: ${invalidBeans.join(', ')}`));
     }
     return routerBeans;
