@@ -13,7 +13,10 @@ export function createLogger(scope?: string, overrideLevel?: pino.LevelWithSilen
       ],
       censor: '****',
     };
-  } else {
+  } else if ( process.env.NODE_ENV !== 'test' ) {
+    // pino-pretty spawns a worker thread: skip it under test (NODE_ENV === 'test',
+    // Jest's default) so a real logger doesn't leave a dangling handle that keeps
+    // the process alive after the test run completes.
     options.transport = {
       target: 'pino-pretty',
       options: {

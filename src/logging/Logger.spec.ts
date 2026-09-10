@@ -6,8 +6,14 @@ jest.mock('pino');
 jest.mock('pino-pretty');
 
 describe('Logger.ts', () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+
   beforeEach(() => {
     jest.resetAllMocks();
+  });
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalNodeEnv;
   });
 
   it('creates a logger', async () => {
@@ -58,5 +64,22 @@ describe('Logger.ts', () => {
       },
     });
     expect(pinoMock.level).toBe('info');
+  });
+
+  it('creates a logger without the pino-pretty transport when running under test', async () => {
+    // GIVEN
+    process.env.NODE_ENV = 'test';
+    const pinoMock: any = {};
+    const pinoConstructor = pino as unknown as Mock;
+    pinoConstructor.mockReturnValue(pinoMock);
+
+    // WHEN
+    createLogger('test-scope');
+
+    // THEN
+    expect(pino).toHaveBeenCalledWith({
+      msgPrefix: '[test-scope] ',
+    });
+    expect(pinoMock.level).toBe('silent');
   });
 });
