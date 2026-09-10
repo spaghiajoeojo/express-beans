@@ -151,6 +151,82 @@ firstExecution() {
 ```
 
 
+## Cache
+
+### Cached
+You can use the `@Cached` decorator to cache the result of a Bean method or the response of a route handler.
+
+```ts
+@Cached()
+getExpensiveData() {
+  // the result of this method will be cached
+}
+```
+
+By default, cached entries expire after `60000` ms (60 seconds) and are kept in memory. You can override these defaults:
+
+```ts
+@Cached({ duration: 5_000, type: 'memory' })
+getExpensiveData() {
+  // the result of this method will be cached for 5 seconds
+}
+```
+
+When applied to a Bean method, the cache key is derived from the arguments passed to the method, so calls with different arguments are cached independently. When applied to a route handler (decorated with `@Route`), the cache key is derived from the request `url`, `method`, `params`, `query` and `body`, and the cached value is the response sent through `res.send`.
+
+Internally, each cache is registered under an identifier scoped to its owning bean, so two different beans can each declare a `@Cached` method with the same name without their caches colliding. If you need to reference a cache explicitly (for example, to invalidate it from a different bean), give it a stable `name`:
+
+```ts
+@Cached({ duration: 5_000, name: 'expensiveData' })
+getExpensiveData() {
+  // this cache can now be referenced as "expensiveData" regardless of which bean owns it
+}
+```
+
+### InvalidateCache
+You can use the `@InvalidateCache` decorator to clear a cache created by `@Cached` whenever the decorated method is called. It takes the name of the `@Cached` method (or route handler) whose cache should be cleared.
+
+```ts
+@Bean
+export class ExampleService {
+
+  @Cached()
+  getExpensiveData() {
+    // the result of this method will be cached
+  }
+
+  @InvalidateCache('getExpensiveData')
+  updateData() {
+    // calling this method clears the cache for getExpensiveData,
+    // so the next call to getExpensiveData will recompute its result
+  }
+}
+```
+
+`@InvalidateCache` also works on route handlers. The decorated method still executes normally after the cache is cleared, and its return value is unaffected.
+
+Because caches are scoped per bean, referencing a `@Cached` method by its bare method name only resolves caches owned by the **same bean** as the `@InvalidateCache` method. To invalidate a cache owned by a **different** bean (for example, when injected via `@InjectBean`), give the `@Cached` method an explicit `name` and reference that same name in `@InvalidateCache`:
+
+```ts
+@Bean
+export class DataService {
+  @Cached({ duration: 5_000, name: 'expensiveData' })
+  getExpensiveData() {
+    // the result of this method will be cached
+  }
+}
+
+@Bean
+export class DataInvalidator {
+  @InvalidateCache('expensiveData')
+  updateData() {
+    // clears DataService's cache even though it lives in a different bean
+  }
+}
+```
+
+If the referenced cache cannot be resolved (a typo, or a bare method name pointing at a different bean), `@InvalidateCache` does not throw: it logs a warning (`No cache found for "<name>", nothing to invalidate`) and the decorated method still runs normally.
+
 ## getBean
 You can use `getBean` to retrieve a Bean instance outside of another Bean:
 

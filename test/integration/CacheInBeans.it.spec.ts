@@ -158,4 +158,58 @@ describe('Cache integration tests', () => {
     expect(text1).toBe(text2);
     expect(text3).not.toBe(text1);
   });
+
+  test('cache is invalidated from a different bean when they share an explicit cache name', async () => {
+    // GIVEN
+    @Bean
+    class CacheOwnerBean {
+      @Cached({ duration: 60_000, name: 'sharedUUIDCache' })
+      getUUIDCached() {
+        return randomUUID();
+      }
+    }
+
+    @Bean
+    class CacheInvalidatorBean {
+      @InvalidateCache('sharedUUIDCache')
+      invalidate() {
+        return 'invalidated';
+      }
+    }
+
+    @RouterBean('/test')
+    class TestRouter {
+      @InjectBean(CacheOwnerBean)
+        cacheOwnerBean: CacheOwnerBean;
+
+      @InjectBean(CacheInvalidatorBean)
+        cacheInvalidatorBean: CacheInvalidatorBean;
+
+      @Route('GET', '/cached')
+      getCached(_req: Request, res: Response) {
+        res.send(this.cacheOwnerBean.getUUIDCached());
+      }
+
+      @Route('POST', '/invalidate')
+      invalidate(_req: Request, res: Response) {
+        res.send(this.cacheInvalidatorBean.invalidate());
+      }
+    }
+    application = new ExpressBeans({ listen: false, routerBeans: [TestRouter] });
+    await flushPromises();
+    server = application.listen(3001);
+    await flushPromises();
+
+    // WHEN
+    const { text: text1 } = await request(server).get('/test/cached').expect(200);
+    const { text: text2 } = await request(server).get('/test/cached').expect(200);
+    await request(server).post('/test/invalidate').expect(200);
+    const { text: text3 } = await request(server).get('/test/cached').expect(200);
+
+    await flushPromises();
+
+    // THEN
+    expect(text1).toBe(text2);
+    expect(text3).not.toBe(text1);
+  });
 });

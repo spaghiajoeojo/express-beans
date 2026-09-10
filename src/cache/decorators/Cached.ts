@@ -3,7 +3,7 @@ import { Cache } from '@/ExpressBeansTypes';
 import { logger, registeredMethods } from '@/core';
 import type { Request, Response } from 'express';
 import { Executor } from '@/core/executor';
-import { caches } from '@/cache';
+import { caches, computeCacheName } from '@/cache';
 import { BeanFunction, CacheEntry } from '@/cache/types';
 
 const createKey = (obj: any) => createHash('sha224')
@@ -45,14 +45,17 @@ const isRoute = (args: unknown[]): args is [Request, Response] => {
 
 /**
  * Caches the result of a method
- * or the response of a route handler using Response.send
+ * or the response of a route handler using Response.send.
+ * The cache is registered under a name scoped to its owning bean, unless
+ * `options.name` is provided, in which case that explicit name is used instead
+ * (required to invalidate this cache from a different bean via `@InvalidateCache`).
  * @param options {Cache}
  * @decorator
  */
 export function Cached<This>(
   options: Cache = {
     duration: 60_000,
-    type: 'memory'
+    type: 'memory',
   },
 ) {
   return (
@@ -62,10 +65,13 @@ export function Cached<This>(
     logger.debug(`Initializing cache for method ${String(context.name)}`);
 
     const cache = new Map<string, CacheEntry>();
-    caches.set(context.name, cache);
     Executor.setExecution('init', () => {
       const bean = registeredMethods.get(method);
-      bean?._interceptors.set(context.name as string, (target: any, _prop: string) => {
+      if (! bean) {
+        throw new Error(`Bean not found: owner of ${method.name}`);
+      }
+      caches.set(options.name ?? computeCacheName(bean, context.name), cache);
+      bean._interceptors.set(context.name as string, (target: any, _prop: string) => {
 
         return (...args: any[]) => {
           let keyObj: any = { args };

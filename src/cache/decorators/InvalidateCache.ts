@@ -1,15 +1,16 @@
 import { BeanFunction } from '@/cache/types';
-import { registeredMethods } from '@/core';
+import { logger, registeredMethods } from '@/core';
 import { Executor } from '@/core/executor';
-import { caches } from '@/cache';
+import { caches, computeCacheName } from '@/cache';
 
 /**
- * Invalidates specific cache when called this method
- * @param CachedMethodName {string | symbol}
+ * Invalidates the cache created by a `@Cached` method or route handler
+ * whenever the decorated method is called.
+ * @param cachedMethodName {string | symbol} name of the `@Cached` method (or route handler) whose cache should be cleared
  * @decorator
  */
 export function InvalidateCache<This>(
-  CachedMethodName: string | symbol,
+  cachedMethodName: string | symbol,
 ) {
   return (
     method: BeanFunction,
@@ -20,8 +21,12 @@ export function InvalidateCache<This>(
       const bean = registeredMethods.get(method);
       bean?._interceptors.set(context.name as string, (target: any, _prop: string) => {
         return (...args: any[]) => {
-          caches.get(CachedMethodName)
-            ?.clear();
+          const cache = caches.get(cachedMethodName) ?? caches.get(computeCacheName(bean, cachedMethodName));
+          if ( !cache ) {
+            logger.warn(`No cache found for "${String(cachedMethodName)}", nothing to invalidate`);
+          } else {
+            cache.clear();
+          }
           return method.call(target, ...args);
         };
 
