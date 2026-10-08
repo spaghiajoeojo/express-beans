@@ -1,13 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ES2023",
+    "rootDir": ".",
     "allowJs": true,
     "useDefineForClassFields": true,
-    "module": "CommonJS",
-    "lib": [
-      "ESNext"
-    ],
-    "moduleResolution": "Node",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "strict": true,
     "strictPropertyInitialization": false,
     "resolveJsonModule": true,
@@ -17,7 +15,6 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "noEmit": true,
@@ -35,9 +32,11 @@
     ]
   },
   "include": [
-    "**/*.spec.ts",
+    "src/**/*.spec.ts",
+    "test/**/*"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ]
 }
